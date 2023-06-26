@@ -26,20 +26,20 @@ def oneChannelPsuTest():
     print("Testing Channel 1.")
 
     powerSupply.write(':APPL CH1,' + str(voltage[0]) + str(amps[0])) # need to change the int to strings, so it's readable to the PSU
-    print("Voltage: " + ':MEAS:VOLT? CH1' + "V")  # returns current voltage for channel 1
-    print("Current: " + ':MEAS:CURR? CH1' + "A") # returns the current for channel 1
+    print("Voltage: " + powerSupply.query(':MEAS:VOLT? CH1') + "V")  # returns current voltage for channel 1
+    print("Current: " + powerSupply.query(':MEAS:CURR? CH1') + "A") # returns the current for channel 1
     time.sleep(2)
 
     print("Testing parameter 2.")
     powerSupply.write(':APPL CH1,' + str(voltage[1]) + str(amps[1]))
-    print("Voltage: " + ':MEAS:VOLT? CH1' + "V")
-    print("Current: " + ':MEAS:CURR? CH1' + "A")
+    print("Voltage: " + powerSupply.query(':MEAS:VOLT? CH1')  + "V")
+    print("Current: " + powerSupply.query(':MEAS:CURR? CH1') + "A")
     time.sleep(2)
 
     print("Testing parameter 3.")
     powerSupply.write(':APPL CH1,' + str(voltage[2]) + str(amps[2]))
-    print("Voltage: " + ':MEAS:VOLT? CH1' + "V")
-    print("Current: " + ':MEAS:CURR? CH1' + "A")
+    print("Voltage: " + powerSupply.query(':MEAS:VOLT? CH1')  + "V")
+    print("Current: " + powerSupply.query(':MEAS:CURR? CH1') + "A")
     time.sleep(2)
     print("PSU Test Done")
     powerSupply.write(':OUTP CH1, OFF') # tell the psu to turn OFF channel_1.
@@ -56,18 +56,18 @@ def multipleChannelsPsuTest():
     print("Channel 1: Testing parameter 1")
     powerSupply.write(':OUTP CH1, ON') # tell the psu to turn ON channel_1.
     powerSupply.write(':APPL CH1,' + str(voltage_1[0]) + str(amps_1[0])) # need to change the int to strings, so it's readable to the PSU
-    print("Voltage: " + ':MEAS:VOLT? CH1' + "V")
-    print("Current: " + ':MEAS:CURR? CH1' + "A")
+    print("Voltage: " + powerSupply.query(':MEAS:VOLT? CH1') + "V")
+    print("Current: " + powerSupply.query(':MEAS:CURR? CH1') + "A")
     time.sleep(2)
     print("Channel 1: Testing parameter 2.")
     powerSupply.write(':APPL CH1,' + str(voltage_1[1]) + str(amps_1[1]))
-    print("Voltage: " + ':MEAS:VOLT? CH1' + "V")
-    print("Current: " + ':MEAS:CURR? CH1' + "A")
+    print("Voltage: " +  powerSupply.query(':MEAS:VOLT? CH1') + "V")
+    print("Current: " +  powerSupply.query(':MEAS:CURR? CH1') + "A")
     time.sleep(2)
     print("Channel 1: Testing parameter 3.")
     powerSupply.write(':APPL CH1,' + str(voltage_1[2]) + str(amps_1[2]))
-    print("Voltage: " + ':MEAS:VOLT? CH1' + "V")
-    print("Current: " + ':MEAS:CURR? CH1' + "A")
+    print("Voltage: " + powerSupply.query(':MEAS:VOLT? CH1') + "V")
+    print("Current: " + powerSupply.query(':MEAS:CURR? CH1') + "A")
     time.sleep(2)
     print("Channel 1 Test Done. Moving to Channel 2. \n")
     
@@ -76,18 +76,18 @@ def multipleChannelsPsuTest():
     powerSupply.write(':OUTP CH2, ON') # tell the psu to turn ON channel_2.
     print("Channel 2: Testing parameter 1")
     powerSupply.write(':APPL CH2,' + str(voltage_2[0]) + str(amps_2[0])) # need to change the int to strings, so it's readable to the PSU
-    print("Voltage: " + ':MEAS:VOLT? CH2' + "V")
-    print("Current: " + ':MEAS:CURR? CH2' + "A")
+    print("Voltage: " + powerSupply.query(':MEAS:VOLT? CH2') + "V")
+    print("Current: " + powerSupply.query(':MEAS:CURR? CH2') + "A")
     time.sleep(2)
     print("Channel 2: Testing parameter 2")
     powerSupply.write(':APPL CH2,' + str(voltage_2[1]) + str(amps_2[1]))
-    print("Voltage: " + ':MEAS:VOLT? CH2' + "V")
-    print("Current: " + ':MEAS:CURR? CH2' + "A")
+    print("Voltage: " + powerSupply.query(':MEAS:VOLT? CH2') + "V")
+    print("Current: " + powerSupply.query(':MEAS:CURR? CH2') + "A")
     time.sleep(2)
     print("Channel 2: Testing parameter 3")
     powerSupply.write(':APPL CH2,' + str(voltage_2[2]) + str(amps_2[2]))
-    print("Voltage: " + ':MEAS:VOLT? CH2' + "V")
-    print("Current: " + ':MEAS:CURR? CH2' + "A")
+    print("Voltage: " + powerSupply.query(':MEAS:VOLT? CH2') + "V")
+    print("Current: " + powerSupply.query(':MEAS:CURR? CH2') + "A")
     time.sleep(2)
     print("Channel 2 Test Done. Moving to Channel 3. \n")
 
@@ -96,18 +96,18 @@ def multipleChannelsPsuTest():
     powerSupply.write(':OUTP CH3, ON') # tell the psu to turn ON channel_3.
     print("Channel 3: Testing parameter 1")
     powerSupply.write(':APPL CH3,' + str(voltage_3[0]) + str(amps_3[0])) # need to change the int to strings, so it's readable to the PSU
-    print("Voltage: " + ':MEAS:VOLT? CH3' + "V")
-    print("Current: " + ':MEAS:CURR? CH3' + "A")
+    print("Voltage: " + powerSupply.query(':MEAS:VOLT? CH3') + "V")
+    print("Current: " + powerSupply.query(':MEAS:CURR? CH3') + "A")
     time.sleep(2)
     print("Channel 3: Testing parameter 2")
     powerSupply.write(':APPL CH3,' + str(voltage_3[1]) + str(amps_3[1]))
-    print("Voltage: " + ':MEAS:VOLT? CH3' + "V")
-    print("Current: " + ':MEAS:CURR? CH3' + "A")
+    print("Voltage: " + powerSupply.query(':MEAS:VOLT? CH3') + "V")
+    print("Current: " + powerSupply.query(':MEAS:CURR? CH3') + "A")
     time.sleep(2)
     print("Channel 3: Testing parameter 3")
     powerSupply.write(':APPL CH3,' + str(voltage_3[2]) + str(amps_3[2]))
-    print("Voltage: " + ':MEAS:VOLT? CH3' + "V")
-    print("Current: " + ':MEAS:CURR? CH3' + "A")
+    print("Voltage: " + powerSupply.query(':MEAS:VOLT? CH3')+ "V")
+    print("Current: " + powerSupply.query(':MEAS:CURR? CH3') + "A")
     time.sleep(2)
     print("Channel 3 Test Done.\n")
 
@@ -120,3 +120,9 @@ def multipleChannelsPsuTest():
     
     
 # Do the main function with one channel. With extra time, attempt the multi channel version.
+def heatPadPSUFun(volts, amps):
+    # instantiate a resource manager - Concerns: Is it okay to keep instantiating a resource manager?
+    # get the id of the psu
+    # assign a name to the psu
+    # create a timer that runs at certain voltage and amps
+    print("Hello World")
