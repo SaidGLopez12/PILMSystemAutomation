@@ -120,9 +120,24 @@ def multipleChannelsPsuTest():
     
     
 # Do the main function with one channel. With extra time, attempt the multi channel version.
-def heatPadPSUFun(volts, amps):
+def heatPadPSUFun(volts, amps, time):
     # instantiate a resource manager - Concerns: Is it okay to keep instantiating a resource manager?
     # get the id of the psu
     # assign a name to the psu
     # create a timer that runs at certain voltage and amps
-    print("Hello World")
+    
+    #-Getting ID of PSU and preparing for PILM Process-#
+    rm = pyvisa.ResourceManager() # create resource manager to store in USB ID
+    powerSupply = rm.open_resource() # open the VISA resource for the power supply unit
+    print(powerSupply.query("*IDN?")) # will open the VISA resource tied to the psu and print the name of the psu
+    powerSupply.write(':OUTP CH1, ON') # Use channel 1 for timer.
+    #--------------------------------------------------#
+    
+    # Timer function
+    #----Inital configurations---------#
+    powerSupply.write(':TIME:CYCLE N,1') # create one cycle for the timer
+    powerSupply.write(':TIME:GROUPS 1') # create one preset of voltage/current values | values are not defined here
+    powerSupply.write(':TIME:ENDS OFF') # after the end of the cycle, turn off the output.
+    powerSupply.write(f':TIME:PARA 1,{str(volts)}, {str(amps)}, {str(time)} ') # sets the parameters for the group
+    #---------------------------------#
+    powerSupply.write(':TIME ON') # turn on the timer and change the voltage and current for channel_1
