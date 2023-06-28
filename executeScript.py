@@ -12,24 +12,8 @@ async def execute(login_data,info): # async is required, as it waits for a signa
     interface or a class to create an object, but lets subclasses
     decide which class or object to instantiate
     '''
-    # if __name__ == '__main__':
     
-    ### Login Data ###
-    login_data = {
-        'rest_url' : f'http://localhost.9000',
-        'ws_url' : f'ws://localhost.9000',
-        'email' : 'admin@aconity3d.com',
-        'password' : 'passwd'
-    }
     
-    ### Session State ###
-    info = {
-        'machine_name' : 'SimMIDI',
-        'config_name' : 'AconityMidi_Three_Scanner_Simulator',
-        'job_name' : 'python_script_job',
-        'studio_version' : 2
-        
-    }
     
     # can I put any value or doees it need to be very specific
     
@@ -66,17 +50,40 @@ async def execute(login_data,info): # async is required, as it waits for a signa
     await asyncio.sleep(2)
     await client.task.on(machine_id, component_id)
     
-         
-    
     '''
    ### JOB ###
     job_name = info['job_name']
     job_id = await client.job.get_job_id(job_name)
     
    '''
-    
-    
-    
+     
+if __name__ == '__main__':
+
+
+    '''
+    Example on how to use the python client for executing scripts.
+    Please change login_data and info to your needs.
+    '''
+
+    # #### LOGIN DATA #### #
+
+    login_data = {
+        'rest_url' : f'http://localhost:9000',
+        'ws_url' : f'ws://localhost:9000',
+        'email' : 'admin@aconity3d.com',
+        'password' : 'passwd'
+    }
+
+    # #### SESSION STATE #### #
+
+    info = {
+        'machine_name' : 'SimMIDI',
+        'config_name' : 'AconityMidi_Three_Scanner_Simulator',
+        'job_name': 'python_script_job',
+        'studio_version' : 2
+    }
+
+    result = asyncio.run(execute(login_data, info), debug=True)
     
 
     
