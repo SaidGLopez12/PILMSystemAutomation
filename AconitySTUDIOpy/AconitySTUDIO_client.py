@@ -13,7 +13,7 @@ from AconitySTUDIOpy import JobAPI
 from AconitySTUDIOpy import TaskAPI
 
 class AconitySTUDIO_client:
-
+    
     '''
     The AconitySTUDIO Python Client. Allows for easy automation and job
     management.
@@ -28,7 +28,7 @@ class AconitySTUDIO_client:
 
         self._logger = logging.getLogger("AconitySTUDIO_client")
 
-        self.connection = connection_api
+        self.connection = connection_api 
         self.gateway = gateway_api
         self.execution = execution_api
         self.data = data_api
