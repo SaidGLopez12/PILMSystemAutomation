@@ -172,7 +172,7 @@ def timerFunction(timeInSec):
         print("Time left:",timer, end="\r") # print the current timer value, create a end variable that creates a new line.
         time.sleep(1)
         timeInSec -= 1 # reduce the total input time by 1 each repetition.
-
+#----------------------------#
 # Main function with one channel.
 def heatPadOneChannel(voltage,amps,timeInSec):  
     #-Getting ID of PSU and preparing for PILM Process-#
