@@ -1,90 +1,79 @@
-import asyncio
+#--importing libraries and files--# * Explain
+import asyncio # Required
+import aiohttp
+import json
 import sys
+import os
+import time
+import logging
+from datetime import datetime
+from pytz import timezone, utc
 import signal
-
 signal.signal(signal.SIGINT, signal.SIG_DFL)
-from AconitySTUDIOpy.AconitySTUDIO_client import AconitySTUDIO_client as AconitySTUDIOPythonClient
 
-async def execute(login_data,info): # async is required, as it waits for a signal to continue
-    #create client with Factory Method
-    '''
-    Factory Method is a Creatinal Design Pattern that allows an
-    interface or a class to create an object, but lets subclasses
-    decide which class or object to instantiate
-    '''
-    
-    
-    
-    # can I put any value or doees it need to be very specific
-    
-    ### Create Client ##
-    client = await AconitySTUDIOPythonClient.create(login_data,studio_version = info['studio_version'])
-    
-    ### Logging Method (Optional) ###
+from AconitySTUDIO_client import AconitySTUDIOPythonClient # Required * Explain *
+from AconitySTUDIO_client import utils # Required * Explain *
+#--------------------------------#
 
+async def pauser(pause,messages):
+    print('')
+    for i in range(pause):
+        sys.stdout.write(f'\rWaiting for {pause-i} seconds {messages}')
+        sys.stdout.flush()
+        await asyncio.sleep(1) # simulating waiting time.
+    print('')
     
-    ### Session State ###
-    print('\n\n ### Session State ### \n\n')
     
-    ### Machine ### | MACHINE ID is required to execute a task
-    machine_name = info['machine_name']
-    machine_id = await client.gateway.get_machine_id(machine_name)
+async def mainFunction(login_data, info):
     
-    '''
-    ### (START) CONFIG ### | The ID of the configuration is REQUIRED for it to work
-    config_name = info['config_name']
-    config_id = await client.gateway.get_config_id(config_name)
+    # create client with factory method
+    client = await AconitySTUDIOPythonClient.create(login_data)
+    client.studio_version = info['studio_version']
     
-    if await client.gateway.config_state(config_id) == "inactive":
-        await client.gateway.start_config(config_id)
-    else:
-        print("Config is already starting")
+    # IMPORTANT:
+    # the following CONVENIENCE FUNCTIONS (get_job_id etc) only work if the job_name, machine_name or config_name are unique.
+    # If this is not the case, set the attributes job_name, config_name, machine_name manually
+    await client.get_job_id(info['job_name'])
+    await client.get_machine_id(info['machine_name'])
+    await client.get_config_id(info['condig_name'])
     
-    '''
     
-    ### COMPONENTS ###
-    component_id = 'light' # backlight
+    # change printing parameters
     
-    ### TASK EXECUTION ###
-    await client.task.off(machine_id,component_id)
-    await asyncio.sleep(2)
-    await client.task.on(machine_id, component_id)
+    # subscribe stuff
+    # parameters, slider postion and more
+    await client.subscribe_report('run')
     
-    '''
-   ### JOB ###
-    job_name = info['job_name']
-    job_id = await client.job.get_job_id(job_name)
     
-   '''
-     
-if __name__ == '__main__':
 
 
-    '''
-    Example on how to use the python client for executing scripts.
-    Please change login_data and info to your needs.
-    '''
+# Test functions (will be called in mainFunction())
+# does it need async for this?
+async def testPILM():
+    #slider movement
+    # slider parameters
+    # slider velocity
+    # platform movemnet
+    # platform velocity
+    # job starting and ending
+    print("Hello World")
 
-    # #### LOGIN DATA #### #
 
+if __name__ == '__main__': # Required * Explain *
+    
     login_data = {
-        'rest_url' : f'http://localhost:9000',
-        'ws_url' : f'ws://localhost:9000',
-        'email' : 'admin@aconity3d.com',
-        'password' : 'passwd'
+        'rest_url' : f'http://192.168.2.201:9000',
+        'ws_url' : f'ws://192.168.2.201:9000',
+        'email' : 'mshuai@stanford.edu',
+        'password' : 'aconity'
     }
-
-    # #### SESSION STATE #### #
-
+   
+    #change info to your needs
     info = {
-        'machine_name' : 'SimMIDI',
-        'config_name' : 'AconityMidi_Three_Scanner_Simulator',
-        'job_name': 'python_script_job',
-        'studio_version' : 2
+        'machine_name' : '1.4404',
+        'config_name': 'LinearizedPower_AlignedAxisToChamber',
+        'job_name': 'Said',
+        'studio_version': 1
     }
-
-    result = asyncio.run(execute(login_data, info), debug=True)
     
-
-    
-    
+    result = asyncio.run(mainFunction(login_data, info), debug = True) # required to control the machine * explain 
