@@ -37,27 +37,39 @@ async def mainFunction(login_data, info):
     await client.get_machine_id(info['machine_name'])
     await client.get_config_id(info['condig_name'])
     
-    
     # change printing parameters
+    os.system('cls' if os.name == 'nt' else 'clear') # clears everything within the console.
+    testScript()
     
-    # subscribe stuff
-    # parameters, slider postion and more
-    await client.subscribe_report('run')
     
     
 
 
 # Test functions (will be called in mainFunction())
-# does it need async for this?
-async def testPILM():
-    #slider movement
-    # slider parameters
-    # slider velocity
-    # platform movemnet
-    # platform velocity
-    # job starting and ending
-    print("Hello World")
-
+async def testScript(client):
+    # -- Slider Movement Variables --#
+    returnPos = 'm.move_abs($c[slider], -120)'
+    initalPos = 'm.move_abs($c[slider], 125)'
+    finalPos = 'm.move_abs($c[slider], 100)'
+    print("Starting Test of PILM process")
+    await asyncio.sleep(1)
+    await client.execute(channel='manual_move', script=returnPos)
+    await asyncio.sleep(1)
+    await client.execute(channel='manual_move', script=initalPos)
+    await asyncio.sleep(1)
+    await client.execute(channel='manual_move', script=finalPos)
+    # slider movement (move to intial, final and then return position)
+    # Start it at return
+    # move it by 125 mm
+    # Create the slot-die process
+    # Final position should be 175mm (so move it 50mm)
+    # move it 
+    
+    
+    # - slider movement
+    # - slot-die process
+    # - intiating, pausing and ending job (for specifc amount of layers)
+    
 
 if __name__ == '__main__': # Required * Explain *
     

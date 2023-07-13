@@ -119,7 +119,7 @@ async def main(login_data, info):
 
     
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
     '''
     Example script on how to use the AconitySCRIPT to control the flow of a job.
     While job is paused, we show how to change its parameters.
