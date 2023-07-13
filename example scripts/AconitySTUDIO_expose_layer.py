@@ -119,45 +119,45 @@ async def main(login_data, info):
 
     
 
-#if __name__ == '__main__':
-    '''
-    Example script on how to use the AconitySCRIPT to control the flow of a job.
-    While job is paused, we show how to change its parameters.
-    '''
+# if __name__ == '__main__':
+#     '''
+#     Example script on how to use the AconitySCRIPT to control the flow of a job.
+#     While job is paused, we show how to change its parameters.
+#     '''
 
-    #Create a logfile for this session in the example folder.
-    #The logfile contains the name of this script with a timestamp.
-    #Note: This is just one possible way to log. 
-    #Logging configuration should be configured by the user, if any logging is to be used at all.
-    utils.log_setup(sys.argv[0], directory_path='')
+#     #Create a logfile for this session in the example folder.
+#     #The logfile contains the name of this script with a timestamp.
+#     #Note: This is just one possible way to log. 
+#     #Logging configuration should be configured by the user, if any logging is to be used at all.
+#     utils.log_setup(sys.argv[0], directory_path='')
     
-    #change login_data to your needs
-    login_data = {
-        'rest_url' : f'http://192.168.2.201:9000',
-        'ws_url' : f'ws://192.168.2.201:9000',
-        'email' : 'mshuai@stanford.edu',
-        'password' : 'aconity'
-    }
+#     #change login_data to your needs
+#     login_data = {
+#         'rest_url' : f'http://192.168.2.201:9000',
+#         'ws_url' : f'ws://192.168.2.201:9000',
+#         'email' : 'mshuai@stanford.edu',
+#         'password' : 'aconity'
+#     }
 
-    #change info to your needs
-    info = {
-        'machine_name' : '1.4404',
-        'config_name': 'LinearizedPower_AlignedAxisToChamber',
-        'job_name': 'Said',
-    }
-    info_test_server = {
-        'machine_name' : '1.4404',
-        'config_name': 'LinearizedPower_AlignedAxisToChamber',
-        'job_name': 'SAid',
-    }
+#     #change info to your needs
+#     info = {
+#         'machine_name' : '1.4404',
+#         'config_name': 'LinearizedPower_AlignedAxisToChamber',
+#         'job_name': 'Said',
+#     }
+#     info_test_server = {
+#         'machine_name' : '1.4404',
+#         'config_name': 'LinearizedPower_AlignedAxisToChamber',
+#         'job_name': 'SAid',
+#     }
 
-    info = {
-        'machine_name' : '1.4404',
-        'config_name': 'LinearizedPower_AlignedAxisToChamber',
-        'job_name': 'Said',
-        'studio_version' : 1
-    }
+#     info = {
+#         'machine_name' : '1.4404',
+#         'config_name': 'LinearizedPower_AlignedAxisToChamber',
+#         'job_name': 'Said',
+#         'studio_version' : 1
+#     }
     
-    #info = info_test_server
+#     #info = info_test_server
 
-    result = asyncio.run(main(login_data, info), debug=True)
+#     result = asyncio.run(main(login_data, info), debug=True)

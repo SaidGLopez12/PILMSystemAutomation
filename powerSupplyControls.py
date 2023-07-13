@@ -240,4 +240,4 @@ def heatPadMutipleChannels(voltage,amps,timeInSec,numOfChannels):
 
 os.system('cls' if os.name == 'nt' else 'clear') # clears everything within the console.
 time.sleep(5)
-heatPadMutipleChannels(2.5,2,5,2) # Run 2 channels
+heatPadMutipleChannels(5,2,10,3) # Run 2 channels
