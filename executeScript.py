@@ -40,6 +40,11 @@ async def mainFunction(login_data, info):
 
 
     os.system('cls' if os.name == 'nt' else 'clear') # clears everything within the console.
+    # Display some info
+    await client.subscribe_topic('Positioning')
+    await client.subscribe_topic('State')
+    await client._receive_websocket_data() # request info aquired from machine
+    
     await testScript(client) # you need to await the function as well
     
 # Test functions (will be called in mainFunction())

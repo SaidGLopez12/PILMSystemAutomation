@@ -28,7 +28,3 @@ def dispenseOperation():
     # You also can't just set it to 0V after it's changed to 5v 
     #It's best to configure the cycle settings if you want a faster cycle
 #-----------------#
-
-dispenseOperation()
-time.sleep(30)
-dispenseOperation()
