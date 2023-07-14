@@ -13,6 +13,9 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 from AconitySTUDIO_client import AconitySTUDIOPythonClient # Required * Explain *
 from AconitySTUDIO_client import utils # Required * Explain *
+
+import powerSupplyControls
+import syringeDispenserControls
 #--------------------------------#
 
 async def pauser(pause,messages):
@@ -40,43 +43,75 @@ async def mainFunction(login_data, info):
 
 
     os.system('cls' if os.name == 'nt' else 'clear') # clears everything within the console.
-    # Display some info
-    await client.subscribe_topic('Positioning')
-    await client.subscribe_topic('State')
-    await client._receive_websocket_data() # request info aquired from machine
-    
     await testScript(client) # you need to await the function as well
     
 # Test functions (will be called in mainFunction())
 async def testScript(client):
-    # -- Slider Movement Variables --#
-        
-    
-        returnPos = '$m.move_abs($c[slider], 200)'
-        initalPos = '$m.move_rel($c[slider], -400)'
-        finalPos = '$m.move_abs($c[slider], -100)'
+    # -- Slider Movement Variables -- #
+        #default aconity positions for slider
+        positiveEndPos = "395" # the numbers are readable as strings
+        centerSlidePos = "260"
+        platformInFrontPos = "210"
+        platformRearPos = "30"
+    #--------------------------------#
+    # -- Platform Movement Variables -- #
+        dispenseHeight = "17"
+        defaultHeight = "18"
+
+    #-----------------------------------#
+        # AconitySCRIPT commands #   
+        returnPos = f'$m.move_abs($c[slider], {positiveEndPos}, 299)' # 300 is max vel
+        # initalPos = '$m.move_abs($c[slider], 180,300)' # 20mm/s for dispensing
+        # finalPos = '$m.move_abs($c[slider], 75,20)' # 20mm/s for dispensing
+        initalPos = '$m.move_abs($c[slider], 75,300)'
+        finalPos = '$m.move_abs($c[slider], 180,10)'
+        centerPos = f'$m.move_abs($c[slider],{centerSlidePos},299)'
+
+        slotDieHeight = f'$m.move_abs($c[platform],{dispenseHeight},200)'
+        defaultPos = f'$m.move_abs($c[platform],{defaultHeight}, 200)'
+
+        #-----------------------#
+        # Test Process
         print("Starting Test of PILM process")
-        await asyncio.sleep(1)
+        await asyncio.sleep(2)
+        # # print("Moving slider to positive end position\n")
+        await client.execute(channel='manual_move', script=returnPos) # in case the slider starts off somewhere else.
+        await asyncio.sleep(5)
+        print("Moving slider to initial position\n")
+        await client.execute(channel='manual_move', script=initalPos)
+        await asyncio.sleep(5)
+        print("Raising platform")
+        await client.execute(channel='manual_move', script = slotDieHeight) # set the platform to slotDieHeight
+        await asyncio.sleep(5)
+
+        #slot die process
+        print("Starting Slot Die Process\n")
+        await client.execute(channel='manual_move', script=finalPos)
+        syringeDispenserControls.dispenseOperation()
+        await asyncio.sleep(10)
+        print("Moving slider to Center position\n")
+        await client.execute(channel='manual_move', script=centerPos)
+        await asyncio.sleep(5)
+        print("Drying Substrate\n")
+        powerSupplyControls.heatPadOneChannel(20,2,30)
+        print('\n')
+        await asyncio.sleep(2) # works with heatpad timer
+
+        #Sintering Process
+        print("Initiating Job\n")
+        await jobProcess(client)
+        await asyncio.sleep(20) # will depend on how long the job will take. Look to add a boolean condition after the job finishes.
+        print("Job Finished\n")
+        await asyncio.sleep(5)
+
+        # Setting to default settings
+        print("Lowering Platform\n")
+        await client.execute(channel='manual_move', script = defaultPos)
+        print("Moving slider to positive end position\n")
         await client.execute(channel='manual_move', script=returnPos)
-        # await asyncio.sleep(1)
-        # await client.execute(channel='manual_move', script=initalPos)
-        # await asyncio.sleep(1)
-        # await client.execute(channel='manual_move', script=finalPos)
-        # await asyncio.sleep(1)
-        # await client.execute(channel='manual_move', script=returnPos)
+        await asyncio.sleep(2)
+        print("Test Done")
         
-        # slider movement (move to intial, final and then return position)
-        # Start it at return
-        # move it by 125 mm
-        # Create the slot-die process
-        # Final position should be 175mm (so move it 50mm)
-        # move it 
-        
-        
-        # - slider movement
-        # - slot-die process
-        # - intiating, pausing and ending job (for specifc amount of layers)    
-        # change printing parameters
 
         
       

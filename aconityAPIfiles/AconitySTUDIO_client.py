@@ -336,7 +336,6 @@ class AconitySTUDIO_client:
         :param parts: Specify the parts which shall be built. Can either be a list of integers or the string 'all'.
         :type parts: list/string
         '''
-
         job = await self._get_job()
 
         self.job_info['start_layer'] = layers[0]
