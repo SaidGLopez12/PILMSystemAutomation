@@ -1,22 +1,23 @@
 #--importing libraries and files--# * Explain
 import asyncio # Required
-import aiohttp
-import json
-import sys
+#import aiohttp
+#import json
+#import sys
 import os
-import time
-import logging
-from datetime import datetime
-from pytz import timezone, utc
+#import time
+#import logging
+#from datetime import datetime
+#from pytz import timezone, utc
 import signal
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 from AconitySTUDIO_client import AconitySTUDIOPythonClient # Required * Explain *
 from AconitySTUDIO_client import utils # Required * Explain *
 
-import powerSupplyControls
-import syringeDispenserControls
+#import powerSupplyControls
+#import syringeDispenserControls
 #--------------------------------#
+'''
 
 async def pauser(pause,messages):
     print('')
@@ -25,6 +26,9 @@ async def pauser(pause,messages):
         sys.stdout.flush()
         await asyncio.sleep(1) # simulating waiting time.
     print('')
+
+
+'''
 
    
     
@@ -60,12 +64,12 @@ async def testScript(client):
 
     #-----------------------------------#
         # AconitySCRIPT commands #   
-        returnPos = f'$m.move_abs($c[slider], {positiveEndPos}, 299)' # 300 is max vel
+        returnPos = f'$m.move_abs($c[slider], {positiveEndPos}, 250)' # 300 is max vel
         # initalPos = '$m.move_abs($c[slider], 180,300)' # 20mm/s for dispensing
         # finalPos = '$m.move_abs($c[slider], 75,20)' # 20mm/s for dispensing
-        initalPos = '$m.move_abs($c[slider], 75,300)'
+        initalPos = '$m.move_abs($c[slider], 75,250)'
         finalPos = '$m.move_abs($c[slider], 180,10)'
-        centerPos = f'$m.move_abs($c[slider],{centerSlidePos},299)'
+        centerPos = f'$m.move_abs($c[slider],{centerSlidePos},250)'
 
         slotDieHeight = f'$m.move_abs($c[platform],{dispenseHeight},200)'
         defaultPos = f'$m.move_abs($c[platform],{defaultHeight}, 200)'
@@ -87,13 +91,12 @@ async def testScript(client):
         #slot die process
         print("Starting Slot Die Process\n")
         await client.execute(channel='manual_move', script=finalPos)
-        syringeDispenserControls.dispenseOperation()
         await asyncio.sleep(10)
         print("Moving slider to Center position\n")
         await client.execute(channel='manual_move', script=centerPos)
         await asyncio.sleep(5)
         print("Drying Substrate\n")
-        powerSupplyControls.heatPadOneChannel(20,2,30)
+        #powerSupplyControls.heatPadOneChannel(20,2,30)
         print('\n')
         await asyncio.sleep(2) # works with heatpad timer
 
