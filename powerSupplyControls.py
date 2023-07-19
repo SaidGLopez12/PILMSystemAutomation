@@ -183,7 +183,7 @@ def heatPadOneChannel(voltage,amps,timeInSec):
     rm = pyvisa.ResourceManager() # create resource manager to find id for PSU
     powerSupply = rm.open_resource('USB0::0x1AB1::0x0E11::DP8C243004769::INSTR') # open the VISA resource for the power supply unit
     powerSupply.write(':OUTP CH1, ON')  
-    print("Channel 1 is Active")
+    print("Channel 1 is Active\n")
     #--------------------------------------------------#
     powerSupply.write(f':APPL CH1, {str(voltage)},{str(amps)}') # applies chosen voltage and amps to CH1
     print("Voltage: " + str(voltage) + "V")
