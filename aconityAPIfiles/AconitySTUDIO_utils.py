@@ -569,7 +569,7 @@ def track_layer_number(client, msg):
                 client.value = value
                 print('track_layer_number:', value)
 
-        client.current_layer = 5
+        #client.current_layer = 5
 
 '''
 class Decorators:

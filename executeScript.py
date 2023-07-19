@@ -4,8 +4,9 @@ import os
 import signal 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-from AconitySTUDIO_client import AconitySTUDIOPythonClient # Required * Explain *
-from AconitySTUDIO_client import utils # Required * Explain *
+from aconityAPIfiles.AconitySTUDIO_client import AconitySTUDIOPythonClient # Required | Imports libraries and the AconitySTUDIOPythonClient class from this file
+#from aconityAPIfiles.AconitySTUDIO_client import utils # Required | Imports libraries and the utils. This file does not have a utils class, so is it required?
+from aconityAPIfiles import AconitySTUDIO_utils
 
 from powerSupplyControls import timerFunction, heatPadOneChannel, heatPadMutipleChannels
 from syringeDispenserControls import dispenseOperation
@@ -35,8 +36,8 @@ finalPos = '$m.move_abs($c[slider], 180,10)'
 centerPos = f'$m.move_abs($c[slider],{centerSlidePos},250)' # this will be used to move slider away from the laser during the sintering process
 
 # Platform
-slotDieHeight = f'$m.move_abs($c[platform],{dispenseHeight},200)'
-defaultPos = f'$m.move_abs($c[platform],{defaultHeight}, 200)'
+slotDiePlatFormHeight = f'$m.move_abs($c[platform],{dispenseHeight},200)'
+defaultPlatformHeight = f'$m.move_abs($c[platform],{defaultHeight}, 200)'
 
 #---------------------------------#
     
@@ -59,7 +60,7 @@ async def executeFun(login_data, info): # main function that will be used  to co
 
 async def jobProcess(client):
         # Start a job. 
-        execution_script = utils.EXECUTION_SCRIPTS['only_expose']
+        execution_script = AconitySTUDIO_utils.EXECUTION_SCRIPTS['only_expose']
         build_parts = 'all'
         start_layer = 7
         end_layer = 7
@@ -73,7 +74,36 @@ async def jobProcess(client):
 
 # PILM
 async def PILMFun(client):
-      print("Hello World")
+      print("Starting PILM Process")
+      await client.execute(channel = 'manual_move', script = defaultPlatformHeight) # incase the platform is not in this position from the start
+      await asyncio.sleep(1)
+      await client.execute(channel = 'manual_move', script = returnPos) # incase the slider is not in this position from the start
+      await asyncio.sleep(2)
+      await client.execute(channel = 'manual_move', script = initalPos)
+      await asyncio.sleep(3)
+      
+      
+      #Slot Die Process
+      await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight)
+      await client.execute(channel = 'manual_move', script = finalPos)
+      dispenseOperation() # Start Dispensing Cycle
+      await asyncio.sleep(10) # wait for the slider to dispense the ink on the substrate
+      await asyncio.sleep(5) # wait for ink to settle onto the substrate
+      heatPadOneChannel(20,2,30) # Turn on PSU and Timer
+      #await asyncio.sleep(5) | could wait for the substrate to cool down, but this might result in bad sintering
+      await client.execute(channel = 'manual_move', script = defaultPlatformHeight)
+      await client.execute(channel='manual_move', script=centerPos)
+      
+      # Sintering Process
+      await jobProcess(client)
+      await asyncio.sleep(20) # Varies. * Something to fix *
+      
+      
+      # Resetting Positions
+      await asyncio.execute(channel = 'manual_move', script = returnPos) # move slider back
+      
+      
+      
 
 
 # Test functions
@@ -88,7 +118,7 @@ async def testPILMScript(client):
         await client.execute(channel='manual_move', script=initalPos)
         await asyncio.sleep(5)
         print("Raising platform for Slot Die Process")
-        await client.execute(channel='manual_move', script = slotDieHeight) # set the platform to slotDieHeight
+        await client.execute(channel='manual_move', script = defaultPlatformHeight) # set the platform to slotDieHeight
         await asyncio.sleep(5)
         #-----------------------------------#
 
@@ -115,7 +145,7 @@ async def testPILMScript(client):
 
         # --Resetting Positions-- #
         print("Lowering Platform\n")
-        await client.execute(channel='manual_move', script = defaultPos)
+        await client.execute(channel='manual_move', script = defaultPlatformHeight)
         print("Moving slider to positive end position\n")
         await client.execute(channel='manual_move', script=returnPos)
         await asyncio.sleep(2)

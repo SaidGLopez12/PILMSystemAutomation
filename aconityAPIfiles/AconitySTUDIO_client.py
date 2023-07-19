@@ -372,7 +372,7 @@ class AconitySTUDIO_client:
         :type password: string
         '''
         logger.info(f'trying to pause running script')
-        workunit_id = utils._gather(self, logger, 'workunit_id', workunit_id)
+        workunit_id = AconitySTUDIO_utils._gather(self, logger, 'workunit_id', workunit_id)  # orignally set to _utils.gather, but it was undefined
 
         if workunit_id == 'none' or workunit_id == None:
             logger.error(f'workunit_id is "{workunit_id}"" (type{type(workunit_id)}). Abort!')
@@ -455,7 +455,7 @@ class AconitySTUDIO_client:
         :param channel: the route GET /script yields information about the current channel
         :type channel: string
         '''
-        workunit_id = utils._gather(self, logger, 'workunit_id', workunit_id)
+        workunit_id = AconitySTUDIO_utils._gather(self, logger, 'workunit_id', workunit_id)
         if workunit_id == 'none' or workunit_id == None:
             logger.error(f'workunit_id is {workunit_id}. abort')
             return
@@ -575,7 +575,7 @@ class AconitySTUDIO_client:
         :type script: string
         '''
 
-        machine_id = utils._gather(self, logger, 'machine_id', machine_id)
+        machine_id = AconitySTUDIO_utils._gather(self, logger, 'machine_id', machine_id)
 
         url = 'machine/' + machine_id + '/execute/' + channel
         task = {
@@ -639,7 +639,7 @@ class AconitySTUDIO_client:
         :rtype: dict
         '''
 
-        job_id = utils._gather(self, logger, 'job_id', job_id)
+        job_id = AconitySTUDIO_utils._gather(self, logger, 'job_id', job_id)
 
         if file_path_init_script != None:
             try:
@@ -695,7 +695,7 @@ class AconitySTUDIO_client:
         :type password: string
         '''
 
-        workunit_id = utils._gather(self, logger, 'workunit_id', workunit_id)
+        workunit_id = AconitySTUDIO_utils._gather(self, logger, 'workunit_id', workunit_id)
 
         if file_path_given:
             with open(init_resume_script) as initfile:
@@ -1154,9 +1154,9 @@ class AconitySTUDIO_client:
 
     async def _get_job(self, job_id=None):
         ''' Returns the `JobHandler` object for the current job.'''
-        job_id = utils._gather(self, logger, 'job_id', job_id)
+        job_id = AconitySTUDIO_utils._gather(self, logger, 'job_id', job_id)
         job = await self.get(f'jobs/{job_id}')
-        self.job = utils.JobHandler(job, logger, self.studio_version)
+        self.job = AconitySTUDIO_utils.JobHandler(job, logger, self.studio_version)
         return self.job
 
     async def get_config_id(self, config_name):
@@ -1216,7 +1216,7 @@ class AconitySTUDIO_client:
 
         :rtype: bool
         '''
-        config_id = utils._gather(self, logger, 'config_id', config_id)
+        config_id = AconitySTUDIO_utils._gather(self, logger, 'config_id', config_id)
 
         url = f'configurations/{config_id}/components'
 
@@ -1273,7 +1273,7 @@ class AconitySTUDIO_client:
         :return: 'operational', 'inactive', or 'initialized'
         :rtype: string
         '''
-        config_id = utils._gather(self, logger, 'config_id', config_id)
+        config_id = AconitySTUDIO_utils._gather(self, logger, 'config_id', config_id)
 
         configurations = await self.get('configurations')
 
@@ -1368,7 +1368,7 @@ class AconitySTUDIO_client:
             return
         while True:
             msg = await self._ws.recv()
-            msg = utils.fix_ws_msg(msg)
+            msg = AconitySTUDIO_utils.fix_ws_msg(msg)
             msg_json = json.loads(msg)
             logger.info(f'received data from websocket:'\
                          f'{str(msg_json)[:30]}...')
