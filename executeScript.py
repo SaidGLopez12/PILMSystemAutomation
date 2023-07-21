@@ -7,9 +7,9 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 from AconitySTUDIO_client import AconitySTUDIOPythonClient # Required | Imports libraries and the AconitySTUDIOPythonClient class from this file
 from AconitySTUDIO_client import utils # Required | Imports libraries and the utils. This file does not have a utils class, so is it required?
 
-
-from powerSupplyControls import timerFunction, heatPadOneChannel, heatPadMutipleChannels
-from syringeDispenserControls import dispenseOperation
+# will require both devices to be plugged into the aconity machine for it to work
+#from powerSupplyControls import timerFunction, heatPadOneChannel, heatPadMutipleChannels 
+#from syringeDispenserControls import dispenseOperation
 #--------------------------------------#
 
 # -- Inital Variables and Instantiations -- #
@@ -40,7 +40,28 @@ slotDiePlatFormHeight = f'$m.move_abs($c[platform],{dispenseHeight},200)'
 defaultPlatformHeight = f'$m.move_abs($c[platform],{defaultHeight}, 200)'
 
 #---------------------------------#
+# --- Execution Script --- #
+
+currentLayer = 0
+SinteringProcess = \
+'''layerProcess = function(){
+    for(p:$p){
+        $m.expose(p[next;$h],$c[scanner_1])
+    }
     
+}
+repeat(layerProcess)'''
+
+ExecutionScripts = {
+      'Sinter' : SinteringProcess
+}
+
+# Init/Resume
+# addParts
+
+# preStart
+# preStartParameters
+#--------------------------#
 async def executeFun(login_data, info): # main function that will be used  to control the aconity machine for PILM, macroscale SLS process and more.
     
     # create client with factory method
@@ -56,16 +77,20 @@ async def executeFun(login_data, info): # main function that will be used  to co
 
 
     os.system('cls' if os.name == 'nt' else 'clear') # clears everything above this code statement. To reduce clutter and confusion when running the script.
-    await PILMFun(client) # you need to await defined functions as well.
+    #await PILMFun(client) # you need to await defined functions as well.
+    await jobProcess(client)
 
 async def jobProcess(client):
         # Start a job. 
-        execution_script = utils.EXECUTION_SCRIPTS['only_expose']
+        # utils.EXECUTION_SCRIPTS['only_expose']
+        execution_script = ExecutionScripts['Sinter']
         build_parts = 'all'
         start_layer = 7
-        end_layer = 7
-
-        await client.start_job(execution_script = execution_script,
+        end_layer = 8
+        
+        while currentLayer != end_layer:
+              if currentLayer != end_layer:
+                await client.start_job(execution_script = execution_script,
                                 layers = [start_layer, end_layer],
                                 parts = build_parts)
         
