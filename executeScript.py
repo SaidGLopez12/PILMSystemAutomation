@@ -40,9 +40,9 @@ slotDiePlatFormHeight = f'$m.move_abs($c[platform],{dispenseHeight},200)'
 defaultPlatformHeight = f'$m.move_abs($c[platform],{defaultHeight}, 200)'
 
 #---------------------------------#
-# --- Execution Script --- #
 
-currentLayer = 0
+
+# --- Execution Script --- #
 SinteringProcess = \
 '''layerProcess = function(){
     for(p:$p){
@@ -75,25 +75,38 @@ async def executeFun(login_data, info): # main function that will be used  to co
     await client.get_machine_id(info['machine_name'])
     await client.get_config_id(info['config_name'])
 
-
+    # Variables for Layer Process
+    execution_script = ExecutionScripts['Sinter']
+    build_parts = 'all'
+    start_layer = 7
+    end_layer = 10
+    currentLayer = start_layer
+    
     os.system('cls' if os.name == 'nt' else 'clear') # clears everything above this code statement. To reduce clutter and confusion when running the script.
     #await PILMFun(client) # you need to await defined functions as well.
     await jobProcess(client)
 
 async def jobProcess(client):
         # Start a job. 
-        # utils.EXECUTION_SCRIPTS['only_expose']
-        execution_script = ExecutionScripts['Sinter']
-        build_parts = 'all'
-        start_layer = 7
-        end_layer = 8
+        # # utils.EXECUTION_SCRIPTS['only_expose']
+        # execution_script = ExecutionScripts['Sinter']
+        # build_parts = 'all'
+        # start_layer = 7
+        # end_layer = 10
         
-        while currentLayer != end_layer:
-              if currentLayer != end_layer:
-                await client.start_job(execution_script = execution_script,
+        print(f"Starting Job from Layer {start_layer}")
+        await client.start_job(execution_script = execution_script,
                                 layers = [start_layer, end_layer],
                                 parts = build_parts)
-        
+        # await asyncio.sleep(3)
+        # print("Pausing Job")
+        # await client.pause_job()
+        # await asyncio.sleep(3)
+        # print(f"Resuming Job from layer {start_layer}")
+        # await client.resume_job()
+        # await asyncio.sleep(3)
+        # print("Stopping Job")
+        # await client.stop_job()
 
 # AM Processes
 
@@ -111,10 +124,10 @@ async def PILMFun(client):
       #Slot Die Process
       await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight)
       await client.execute(channel = 'manual_move', script = finalPos)
-      dispenseOperation() # Start Dispensing Cycle
+      #dispenseOperation() # Start Dispensing Cycle
       await asyncio.sleep(10) # wait for the slider to dispense the ink on the substrate
       await asyncio.sleep(5) # wait for ink to settle onto the substrate
-      heatPadOneChannel(20,2,30) # Turn on PSU and Timer
+      #heatPadOneChannel(20,2,30) # Turn on PSU and Timer
       #await asyncio.sleep(5) | could wait for the substrate to cool down, but this might result in bad sintering
       await client.execute(channel='manual_move', script=centerPos)
       

@@ -371,12 +371,12 @@ class AconitySTUDIO_client:
         :param channel: the route GET /script yields information about the current workunit_id
         :type password: string
         '''
-        logger.info(f'trying to pause running script')
+        # logger.info(f'trying to pause running script')
         workunit_id = utils._gather(self, logger, 'workunit_id', workunit_id)  # orignally set to _utils.gather, but it was undefined
 
-        if workunit_id == 'none' or workunit_id == None:
-            logger.error(f'workunit_id is "{workunit_id}"" (type{type(workunit_id)}). Abort!')
-            raise ValueError(f'workunit_id is "{workunit_id}"" (type{type(workunit_id)}). Abort!')
+        # if workunit_id == 'none' or workunit_id == None:
+        #     logger.error(f'workunit_id is "{workunit_id}"" (type{type(workunit_id)}). Abort!')
+        #     raise ValueError(f'workunit_id is "{workunit_id}"" (type{type(workunit_id)}). Abort!')
 
         #create channel observer
         if self.studio_version == 1:
@@ -385,7 +385,7 @@ class AconitySTUDIO_client:
             number_of_checks = 1
         channel_paused = asyncio.create_task(self._wait(channel=channel_id, event='paused', number_of_checks=number_of_checks))
 
-        #post the script
+        # post the script
         await asyncio.sleep(self.savety_sleep) # give the channel_done task a chance to catch the start
 
         url = 'script/' + workunit_id + '/pause/' + channel_id
@@ -436,7 +436,7 @@ class AconitySTUDIO_client:
             logger.exception('This dictionary gets filled when start_job() is called')
             raise
 
-        logging.info(f'resuming job with new goal to build layers {layers}....jobinfo: {self.job_info}')
+        # logging.info(f'resuming job with new goal to build layers {layers}....jobinfo: {self.job_info}')
         init_resume_script = self.job.create_init_resume_script(layers, parts)
 
         result = await self.resume_script(init_resume_script = init_resume_script,
