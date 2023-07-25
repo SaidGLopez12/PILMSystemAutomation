@@ -40,7 +40,12 @@ slotDiePlatFormHeight = f'$m.move_abs($c[platform],{dispenseHeight},200)'
 defaultPlatformHeight = f'$m.move_abs($c[platform],{defaultHeight}, 200)'
 
 #---------------------------------#
+# Init/Resume
+# addParts
 
+# preStart
+# preStartParameters
+#--------------------------#
 
 # --- Execution Scripts and Variables for Multi-Layer Process --- #
 SinteringProcess = \
@@ -56,20 +61,14 @@ ExecutionScripts = {
       'Sinter' : SinteringProcess
 }
 
-# Variables for Layer Process
 execution_script = ExecutionScripts['Sinter']
 build_parts = 'all'
-start_layer,currentLayer,initalLayer = 7
+start_layer = 7
+currentLayer = start_layer
+initalLayer = start_layer
 end_layer = 10
-# currentLayer = start_layer
-# initalLayer = start_layer # to test if I needs to start or resume job.
+# ---------------------------------------------------------------#
 
-# Init/Resume
-# addParts
-
-# preStart
-# preStartParameters
-#--------------------------#
 async def executeFun(login_data, info): # main function that will be used  to control the aconity machine for PILM, macroscale SLS process and more.
     
     # create client with factory method
@@ -85,8 +84,8 @@ async def executeFun(login_data, info): # main function that will be used  to co
 
     
     os.system('cls' if os.name == 'nt' else 'clear') # clears everything above this code statement. To reduce clutter and confusion when running the script.
-    await PILMFun(client) # you need to await defined functions as well.
-    #await jobProcess(client)
+    await PILMFun(client,currentLayer) # you need to await defined functions as well.
+   
 
 # async def jobProcess(client):
 #         # Start a job. 
@@ -113,12 +112,12 @@ async def executeFun(login_data, info): # main function that will be used  to co
 # AM Processes
 
 # PILM
-async def PILMFun(client):
+async def PILMFun(client,currentLayer):
       print("Starting PILM Process\n")   
       print(f"Inital Layer: {initalLayer}\n")
       #Loop For Multi-Layer
-      while currentLayer < end_layer:
-        print("Current Layer: {currentLayer}\n")
+      while currentLayer <= end_layer:
+        print(f"Current Layer: {currentLayer}\n")
         await client.execute(channel = 'manual_move', script = defaultPlatformHeight) # incase the platform is not in this position from the start
         await asyncio.sleep(1)
         await client.execute(channel = 'manual_move', script = returnPos) # incase the slider is not in this position from the start
