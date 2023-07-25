@@ -42,7 +42,7 @@ defaultPlatformHeight = f'$m.move_abs($c[platform],{defaultHeight}, 200)'
 #---------------------------------#
 
 
-# --- Execution Script --- #
+# --- Execution Scripts and Variables for Multi-Layer Process --- #
 SinteringProcess = \
 '''layerProcess = function(){
     for(p:$p){
@@ -55,6 +55,14 @@ repeat(layerProcess)'''
 ExecutionScripts = {
       'Sinter' : SinteringProcess
 }
+
+# Variables for Layer Process
+execution_script = ExecutionScripts['Sinter']
+build_parts = 'all'
+start_layer,currentLayer,initalLayer = 7
+end_layer = 10
+# currentLayer = start_layer
+# initalLayer = start_layer # to test if I needs to start or resume job.
 
 # Init/Resume
 # addParts
@@ -75,70 +83,76 @@ async def executeFun(login_data, info): # main function that will be used  to co
     await client.get_machine_id(info['machine_name'])
     await client.get_config_id(info['config_name'])
 
-    # Variables for Layer Process
-    execution_script = ExecutionScripts['Sinter']
-    build_parts = 'all'
-    start_layer = 7
-    end_layer = 10
-    currentLayer = start_layer
     
     os.system('cls' if os.name == 'nt' else 'clear') # clears everything above this code statement. To reduce clutter and confusion when running the script.
-    #await PILMFun(client) # you need to await defined functions as well.
-    await jobProcess(client)
+    await PILMFun(client) # you need to await defined functions as well.
+    #await jobProcess(client)
 
-async def jobProcess(client):
-        # Start a job. 
-        # # utils.EXECUTION_SCRIPTS['only_expose']
-        # execution_script = ExecutionScripts['Sinter']
-        # build_parts = 'all'
-        # start_layer = 7
-        # end_layer = 10
+# async def jobProcess(client):
+#         # Start a job. 
+#         # # utils.EXECUTION_SCRIPTS['only_expose']
+#         # execution_script = ExecutionScripts['Sinter']
+#         # build_parts = 'all'
+#         # start_layer = 7
+#         # end_layer = 10
         
-        print(f"Starting Job from Layer {start_layer}")
-        await client.start_job(execution_script = execution_script,
-                                layers = [start_layer, end_layer],
-                                parts = build_parts)
-        # await asyncio.sleep(3)
-        # print("Pausing Job")
-        # await client.pause_job()
-        # await asyncio.sleep(3)
-        # print(f"Resuming Job from layer {start_layer}")
-        # await client.resume_job()
-        # await asyncio.sleep(3)
-        # print("Stopping Job")
-        # await client.stop_job()
+#         print(f"Starting Job from Layer {start_layer}")
+#         await client.start_job(execution_script = execution_script,
+#                                 layers = [start_layer, end_layer],
+#                                 parts = build_parts)
+#         # await asyncio.sleep(3)
+#         # print("Pausing Job")
+#         # await client.pause_job()
+#         # await asyncio.sleep(3)
+#         # print(f"Resuming Job from layer {start_layer}")
+#         # await client.resume_job()
+#         # await asyncio.sleep(3)
+#         # print("Stopping Job")
+#         # await client.stop_job()
 
 # AM Processes
 
 # PILM
 async def PILMFun(client):
-      print("Starting PILM Process")
-      await client.execute(channel = 'manual_move', script = defaultPlatformHeight) # incase the platform is not in this position from the start
-      await asyncio.sleep(1)
-      await client.execute(channel = 'manual_move', script = returnPos) # incase the slider is not in this position from the start
-      await asyncio.sleep(2)
-      await client.execute(channel = 'manual_move', script = initalPos)
-      await asyncio.sleep(3)
+      print("Starting PILM Process\n")   
+      print(f"Inital Layer: {initalLayer}\n")
+      #Loop For Multi-Layer
+      while currentLayer < end_layer:
+        print("Current Layer: {currentLayer}\n")
+        await client.execute(channel = 'manual_move', script = defaultPlatformHeight) # incase the platform is not in this position from the start
+        await asyncio.sleep(1)
+        await client.execute(channel = 'manual_move', script = returnPos) # incase the slider is not in this position from the start
+        await asyncio.sleep(2)
+        await client.execute(channel = 'manual_move', script = initalPos)
+        await asyncio.sleep(3)
       
       
-      #Slot Die Process
-      await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight)
-      await client.execute(channel = 'manual_move', script = finalPos)
-      #dispenseOperation() # Start Dispensing Cycle
-      await asyncio.sleep(10) # wait for the slider to dispense the ink on the substrate
-      await asyncio.sleep(5) # wait for ink to settle onto the substrate
-      #heatPadOneChannel(20,2,30) # Turn on PSU and Timer
-      #await asyncio.sleep(5) | could wait for the substrate to cool down, but this might result in bad sintering
-      await client.execute(channel='manual_move', script=centerPos)
+        #Slot Die Process
+        await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight)
+        await client.execute(channel = 'manual_move', script = finalPos)
+        #dispenseOperation() # Start Dispensing Cycle
+        await asyncio.sleep(10) # wait for the slider to dispense the ink on the substrate
+        await asyncio.sleep(5) # wait for ink to settle onto the substrate
+        #heatPadOneChannel(20,2,30) # Turn on PSU and Timer
+        #await asyncio.sleep(5) | could wait for the substrate to cool down, but this might result in bad sintering
+        await client.execute(channel='manual_move', script=centerPos)
       
       
-      # Sintering Process
-      await jobProcess(client)
-      await asyncio.sleep(20) # Varies. * Something to fix *
-      await client.execute(channel = 'manual_move', script = defaultPlatformHeight)
+        # Sintering Process
+        if initalLayer == start_layer:
+           await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
+        else:
+            await client.resume_job() # resume the job, but at the next layer | inital is 7, then this will start at layer 8
+        currentLayer += 1    
+        await asyncio.sleep(20) # Varies. * Something to adjust *
+        await client.pause_job() # pause the job
+        await client.execute(channel = 'manual_move', script = defaultPlatformHeight)
       
-      # Resetting Positions
-      await client.execute(channel = 'manual_move', script = returnPos) # move slider back
+        # Resetting Positions
+        await client.execute(channel = 'manual_move', script = returnPos) # move slider back
+    
+      await client.stop_job()
+      
       
       
       
@@ -171,11 +185,11 @@ async def testPILMScript(client):
         print("Starting Slot Die Process")
         print("====================\n")
         await client.execute(channel='manual_move', script=finalPos)
-        dispenseOperation() # Start Dispense Cycle
+        #dispenseOperation() # Start Dispense Cycle
         await asyncio.sleep(10)
         await asyncio.sleep(5)
         print("Drying Substrate")
-        heatPadOneChannel(20,2,30) # Turn on the PSU and Timer
+        #heatPadOneChannel(20,2,30) # Turn on the PSU and Timer
         await asyncio.sleep(2) # works with heatpad timer
 
         print("\nMoving slider to Center Position\n")
@@ -186,7 +200,7 @@ async def testPILMScript(client):
         print("Starting Sintering Process")
         print("====================\n")
         print("Initiating Job")
-        await jobProcess(client)
+        await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts)
         await asyncio.sleep(20) # will depend on how long the job will take. Look to add a boolean condition after the job finishes.
         print("Job Finished\n")
         await asyncio.sleep(5)

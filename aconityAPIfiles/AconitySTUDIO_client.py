@@ -350,15 +350,15 @@ class AconitySTUDIO_client:
 
         await self.get_workunit_and_channel_id(response)
 
-        if 'error' in response and 'error(s) in script. Could not execute! =>\n' in response['error']:
-            logger.error(f'channel {channel_id} may be occupied. Try to shut it down ...')
+        # if 'error' in response and 'error(s) in script. Could not execute! =>\n' in response['error']:
+        #     logger.error(f'channel {channel_id} may be occupied. Try to shut it down ...')
 
-            stop_response = await self.get(f'script/{self.workunit_id}/stop/{channel_id}')
-            if 'success' in stop_response and stop_response['success'] == 'machine will stop ...':
-                logger.info(f'channel {channel_id} successfully stopped')
-            else:
-                logger.warning(f'channel {channel_id} can not be stopped')
-                raise ValueError(f'{response}')
+        #     stop_response = await self.get(f'script/{self.workunit_id}/stop/{channel_id}')
+        #     if 'success' in stop_response and stop_response['success'] == 'machine will stop ...':
+        #         logger.info(f'channel {channel_id} successfully stopped')
+        #     else:
+        #         logger.warning(f'channel {channel_id} can not be stopped')
+        #         raise ValueError(f'{response}')
 
         return response
 
@@ -430,7 +430,8 @@ class AconitySTUDIO_client:
                 self.job_info['start_layer'] = layers[0]
                 self.job_info['end_layer'] = layers[1]
             else:
-                self.job_info['start_layer'] += self.job_info['AddLayerCommands']
+                #self.job_info['start_layer'] += self.job_info['AddLayerCommands']
+                self.job_info['start_layer'] += 1 # increase by 1 to start from the next layer.
                 layers = [self.job_info['start_layer'], self.job_info['end_layer']]
         except KeyError:
             logger.exception('This dictionary gets filled when start_job() is called')
