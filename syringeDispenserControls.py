@@ -19,7 +19,8 @@ def dispenseOperation(): # This function will serve as the signal to start the d
     task.write(0) # Set the voltage channel to 0V
     time.sleep(1)
     task.write(5) # set the voltage channel to 5V | Will trigger the cycle
-    
+    time.sleep(10.5)
+    task.write(0)
 
     task.stop() # Required | Stop the analog output channel once it's not needed
     task.close() # Required | Close the channel when done.

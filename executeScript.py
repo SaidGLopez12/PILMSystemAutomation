@@ -9,21 +9,24 @@ from AconitySTUDIO_client import utils # Required | Imports libraries and the ut
 
 # will require both devices to be plugged into the aconity machine for it to work
 #from powerSupplyControls import timerFunction, heatPadOneChannel, heatPadMutipleChannels 
-#from syringeDispenserControls import dispenseOperation
+from syringeDispenserControls import dispenseOperation
 #--------------------------------------#
 
 # -- Inital Variables and Instantiations -- #
 # --- Slider Movement Variables --- #
 
 # default aconity positions for slider 
-positiveEndPos = "395" # the numbers are readable as strings
+positiveEndPos = "300" # the numbers are readable as strings
 centerSlidePos = "260"
 platformInFrontPos = "210"
 platformRearPos = "30"
 
 # -- Platform Movement Variables -- #
-dispenseHeight = "17"
-defaultHeight = "18"
+# dispenseHeight = "18"
+defaultHeight = "17.70"
+layersProcessed = 0
+layerThickness_1 = -2 # will make it go up
+layerThickness_2 = 2 # make it go down
 
 #---------------------------------------#
 
@@ -31,14 +34,14 @@ defaultHeight = "18"
 # They are stored in variables that can be used in the execute commands that are readable by the machine.
 # Slider | AconityScript(reference, abs pos val, vel)
 returnPos = f'$m.move_abs($c[slider], {positiveEndPos}, 250)' # 300 is max vel. Go less since a lot of error messages pop up when reaching this velocity
-initalPos = '$m.move_abs($c[slider], 75,250)'
-finalPos = '$m.move_abs($c[slider], 180,10)'
+initalPos = '$m.move_abs($c[slider], 50,250)'
+finalPos = '$m.move_abs($c[slider], 165,10)'
 centerPos = f'$m.move_abs($c[slider],{centerSlidePos},250)' # this will be used to move slider away from the laser during the sintering process
 
 # Platform
-slotDiePlatFormHeight = f'$m.move_abs($c[platform],{dispenseHeight},200)'
 defaultPlatformHeight = f'$m.move_abs($c[platform],{defaultHeight}, 200)'
-
+slotDiePlatFormHeight_UP = f'$m.move_rel($c[platform],-1.95,200)' # decreasing the value makes the platform go up
+slotDiePlatFormHeight_DOWN = f'$m.move_rel($c[platform],2,200)' #increasing the value makes the platform go down
 #---------------------------------#
 # Init/Resume
 # addParts
@@ -63,10 +66,10 @@ ExecutionScripts = {
 
 execution_script = ExecutionScripts['Sinter']
 build_parts = 'all'
-start_layer = 7
+start_layer = 8
 currentLayer = start_layer
 initalLayer = start_layer
-end_layer = 10
+end_layer = 8
 # ---------------------------------------------------------------#
 
 async def executeFun(login_data, info): # main function that will be used  to control the aconity machine for PILM, macroscale SLS process and more.
@@ -84,8 +87,15 @@ async def executeFun(login_data, info): # main function that will be used  to co
 
     
     os.system('cls' if os.name == 'nt' else 'clear') # clears everything above this code statement. To reduce clutter and confusion when running the script.
+    # await client.execute(channel = 'manual_move', script = defaultPlatformHeight)
+    # await asyncio.sleep(2)
+    # await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_DOWN)
+    # await asyncio.sleep(2)
+    # await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_UP)
+    # await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
+
     await PILMFun(client,currentLayer) # you need to await defined functions as well.
-   
+    
 
 # async def jobProcess(client):
 #         # Start a job. 
@@ -113,57 +123,72 @@ async def executeFun(login_data, info): # main function that will be used  to co
 
 # PILM
 async def PILMFun(client,currentLayer):
+      
+      await client.execute(channel = 'manual_move', script = defaultPlatformHeight)
+
       print("Starting PILM Process\n")   
       print(f"Inital Layer: {initalLayer}\n")
       #Loop For Multi-Layer
       while currentLayer <= end_layer:
         print(f"Current Layer: {currentLayer}\n")
-        await client.execute(channel = 'manual_move', script = defaultPlatformHeight) # incase the platform is not in this position from the start
-        await asyncio.sleep(1)
-        await client.execute(channel = 'manual_move', script = returnPos) # incase the slider is not in this position from the start
+        # if layersProcessed == 0 & layersProcessed < 0:
+        #     await client.execute(channel = 'manual_move', script = defaultPlatformHeight) # incase the platform is not in this position from the start
+        # else:
+        #     layerThickness -= 2
+        #     await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_UP)
+
+        # await asyncio.sleep(1)
+        await client.execute(channel = 'manual_move', script = centerPos) # incase the slider is not in this position from the start
         await asyncio.sleep(2)
         await client.execute(channel = 'manual_move', script = initalPos)
         await asyncio.sleep(3)
       
       
         #Slot Die Process
-        await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight)
+        #await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight)
         await client.execute(channel = 'manual_move', script = finalPos)
-        #dispenseOperation() # Start Dispensing Cycle
-        await asyncio.sleep(10) # wait for the slider to dispense the ink on the substrate
-        await asyncio.sleep(5) # wait for ink to settle onto the substrate
+        dispenseOperation() # Start Dispensing Cycle
+
+        await asyncio.sleep(15) # wait for the slider to dispense the ink on the substrate
         #heatPadOneChannel(20,2,30) # Turn on PSU and Timer
-        #await asyncio.sleep(5) | could wait for the substrate to cool down, but this might result in bad sintering
         await client.execute(channel='manual_move', script=centerPos)
       
       
         # Sintering Process
-        if initalLayer == start_layer:
-           await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
-        else:
-            await client.resume_job() # resume the job, but at the next layer | inital is 7, then this will start at layer 8
-        currentLayer += 1    
-        await asyncio.sleep(20) # Varies. * Something to adjust *
-        await client.pause_job() # pause the job
-        await client.execute(channel = 'manual_move', script = defaultPlatformHeight)
-      
-        # Resetting Positions
-        await client.execute(channel = 'manual_move', script = returnPos) # move slider back
-    
-      await client.stop_job()
+        # if initalLayer == start_layer:
+        #    await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
+        # else:
+        #     await client.resume_job() # resume the job, but at the next layer | inital is 7, then this will start at layer 8
+        # currentLayer += 1    
+        # await asyncio.sleep(200) # Varies. * Something to adjust *
+        # await client.pause_job() # pause the job
+        # if layersProcessed == 0 & layersProcessed < 0:
+        #     await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_DOWN)
+        # else:
+        #      layerThickness += 2
+        #      await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_DOWN)
+        # await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_DOWN)    
+        # # Resetting Positions 
+        # await client.execute(channel = 'manual_move', script = returnPos) # move slider back
+        currentLayer += 1  
+    #   await client.stop_job()
+
+      await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_DOWN)
+      await asyncio.sleep(2)
+      await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_UP)
       
       
       
       
 
 
-# Test functions
+# Test functions - 
 async def testPILMScript(client):
         #-----------------------------------#
         print("Testing PILM Process")
         print("====================\n")
         print("Moving Platform and Slider to default positions\n")
-        await client.execute(channel = 'manual_move', script = defaultPlatformHeight) # incase the platform is not in this position from the start
+        #await client.execute(channel = 'manual_move', script = defaultPlatformHeight) # incase the platform is not in this position from the start
         await asyncio.sleep(1)
         await client.execute(channel = 'manual_move', script = returnPos) # incase the slider is not in this position from the start
         await asyncio.sleep(2)
@@ -175,7 +200,7 @@ async def testPILMScript(client):
         await client.execute(channel = 'manual_move', script = initalPos)
         await asyncio.sleep(1)
         print("Raising Platform\n")
-        await client.execute(channel='manual_move', script = slotDiePlatFormHeight) # set the platform to slotDieHeight
+        #await client.execute(channel='manual_move', script = slotDiePlatFormHeight) # set the platform to slotDieHeight
         #-----------------------------------#
         
         await asyncio.sleep(3)
@@ -209,7 +234,7 @@ async def testPILMScript(client):
         print("Resetting Positions")
         print("====================\n")
         print("Moving Platform to default height")
-        await client.execute(channel='manual_move', script = defaultPlatformHeight)
+        #await client.execute(channel='manual_move', script = defaultPlatformHeight)
         print("Moving slider to positive end position\n")
         await client.execute(channel='manual_move', script=returnPos)
         await asyncio.sleep(1)
@@ -232,7 +257,7 @@ if __name__ == '__main__': # Required * Explain *
     info = {
         'machine_name' : '1.4404',
         'config_name': 'LinearizedPower_AlignedAxisToChamber',
-        'job_name': 'Said',
+        'job_name': 'CuO w/EG on PCB _various hatching',
         'studio_version': 1
     }
     
