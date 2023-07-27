@@ -16,13 +16,13 @@ from syringeDispenserControls import dispenseOperation
 
 # -- Slider Movement Variables And AconityScripts-- #
 
-# default positions for slider
+# default positions for SLIDER
 positiveEndPos = "300"
 centerSlidePos = "260"
 platformInFrontPos = "210"
 platformRearPos = "30"
 
-# AconityScripts for Slider
+# AconityScripts for SLIDER
 #returnPos = f'$m.move_abs($c[slider], {positiveEndPos}, 250)'
 initalPos = '$m.move_abs($c[slider], 50,250)' # move slider to first pos of deposition process
 finalPos = '$m.move_abs($c[slider], 165,10)' # move slider to final pos of deposition process | Get's called with the syringe operation function
@@ -36,7 +36,7 @@ layersProcessed = 0
 platformIncrementUp = -2
 platfromDecrementDown = 2 
 
-# AconityScript for Platform Movement
+# AconityScript for PLATFORM Movement
 defaultPlatformHeight = f'$m.move_abs($c[platform],{defaultHeight}, 200)'
 slotDiePlatFormHeight_UP = f'$m.move_rel($c[platform],-1.95,200)' # decreasing the value makes the platform go up
 slotDiePlatFormHeight_DOWN = f'$m.move_rel($c[platform],2,200)' #increasing the value makes the platform go down
@@ -48,7 +48,7 @@ slotDiePlatFormHeight_DOWN2 = f'$m.move_rel($c[platform],{platfromDecrementDown}
 
 # --- Execution Scripts and Variables for Single and Multi-Layer Process --- #
 
-SinteringProcess = \
+singleScanSinter = \
 '''layerProcess = function(){
     for(p:$p){
         $m.expose(p[next;$h],$c[scanner_1])
@@ -58,7 +58,7 @@ SinteringProcess = \
 repeat(layerProcess)'''
 
 ExecutionScripts = {
-      'Sinter' : SinteringProcess
+      'Sinter1' : singleScanSinter
 }
 
 execution_script = ExecutionScripts['Sinter']
@@ -89,7 +89,7 @@ async def executeFunc(login_data, info):
 
 async def multiLayerPILMFun(client, currentLayer):
     
-     await client.execute(channel = 'manual_move', script = defaultPlatformHeight)
+     await client.execute(channel = 'manual_move', script = defaultPlatformHeight) # REQUIRED
      
      # Main Process # 
      print ("Starting PILM Process ")    
@@ -116,7 +116,8 @@ async def multiLayerPILMFun(client, currentLayer):
          await client.execute(channel = 'manual_move', script = finalPos)
          dispenseOperation()  # incase the slider is not in this position from the start
          await asyncio.sleep(15) # wait for the slider to dispense the ink on the substrate
-            
+        #PSU function Goes Here
+        
         # Start Sintering Process
          await client.execute(channel='manual_move', script=centerPos) # Move it back to starting position
          
@@ -135,7 +136,7 @@ async def multiLayerPILMFun(client, currentLayer):
              platfromDecrementDown += 2
              await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_DOWN2)
              
-         currentLayer += 1  
+         layersProcessed += 1  
              
      await client.stop_job()
     
