@@ -84,6 +84,7 @@ async def executeFunc(login_data, info):
      await client.get_config_id(info['config_name'])
      
      os.system('cls' if os.name == 'nt' else 'clear') # Clear everything above this code | To get rid of clutter
+     multiLayerPILMFun(client, currentLayer)
      
 
 async def multiLayerPILMFun(client, currentLayer):
@@ -103,13 +104,61 @@ async def multiLayerPILMFun(client, currentLayer):
          else:
              platformIncrementUp += 0.05
              await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_UP2)
+
+        # Deposition Process Preparation
+         await asyncio.sleep(1)
+         await client.execute(channel = 'manual_move', script = centerPos)
+         await asyncio.sleep(2)
+         await client.execute(channel = 'manual_move', script = initalPos)
+            
+        # Slot Die Deposition Process
+         await asyncio.sleep(1)
+         await client.execute(channel = 'manual_move', script = finalPos)
+         dispenseOperation()  # incase the slider is not in this position from the start
+         await asyncio.sleep(15) # wait for the slider to dispense the ink on the substrate
+            
+        # Start Sintering Process
+         await client.execute(channel='manual_move', script=centerPos) # Move it back to starting position
+         
+         if initalLayer == start_layer:
+           await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
+         else:
+            await client.resume_job() # resume the job, but at the next layer | inital is 7, then this will start at layer 8
+            currentLayer += 1    
+            await asyncio.sleep(200) # Varies. * Something to adjust *
+            await client.pause_job() # pause the job
+         
+        # Preparing for next layer
+         if layersProcessed == 0 & layersProcessed < 0:
+            await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_DOWN2)
+         else:
+             platfromDecrementDown += 2
+             await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_DOWN2)
+             
+         currentLayer += 1  
+             
+     await client.stop_job()
     
-    # Deposition Process Preparation
-     await asyncio.sleep(1)
-     await client.execute(channel = 'manual_move', script = centerPos)
-     await asyncio.sleep(2)
-     await client.execute(channel = 'manual_move', script = initalPos)
-     await asyncio.sleep(2)
-     
-     # Slot Die Deposition Process
-     
+         
+         
+         
+# Conditional statment will cause the program to be executed if it's condition is met.
+if __name__ == '__main__': # Required * Explain *
+    
+    #change login_data to your needs
+    login_data = {
+        'rest_url' : f'http://192.168.2.201:9000',
+        'ws_url' : f'ws://192.168.2.201:9000',
+        'email' : 'mshuai@stanford.edu',
+        'password' : 'aconity'
+    }
+   
+    #change info to your needs
+    info = {
+        'machine_name' : '1.4404',
+        'config_name': 'LinearizedPower_AlignedAxisToChamber',
+        'job_name': 'CuO w/EG on PCB _various hatching',
+        'studio_version': 1
+    }
+    
+    result = asyncio.run(executeFunc(login_data, info), debug = True) # required to control the machine * explain 
