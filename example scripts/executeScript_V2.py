@@ -9,7 +9,7 @@ from AconitySTUDIO_client import AconitySTUDIOPythonClient
 from AconitySTUDIO_client import utils
 
 #from powerSupplyControls import timerFunction, heatPadOneChannel, heatPadMultipleChannels
-from syringeDispenserControls import dispenseOperation
+#from syringeDispenserControls import dispenseOperation
 #-------------------------------------#
 
 # -- Initial Variables and Scripts -- # 
@@ -41,8 +41,8 @@ defaultPlatformHeight = f'$m.move_abs($c[platform],{defaultHeight}, 200)'
 slotDiePlatFormHeight_UP = f'$m.move_rel($c[platform],-1.95,200)' # decreasing the value makes the platform go up
 slotDiePlatFormHeight_DOWN = f'$m.move_rel($c[platform],2,200)' #increasing the value makes the platform go down
 
-slotDiePlatFormHeight_UP2 = f'$m.move_rel($c[platform],{platformIncrementUp},200)'
-slotDiePlatFormHeight_DOWN2 = f'$m.move_rel($c[platform],{platfromDecrementDown},200)'
+slotDiePlatFormHeight_UP2 = f'$m.move_rel($c[platform],{str(platformIncrementUp)},200)'
+slotDiePlatFormHeight_DOWN2 = f'$m.move_rel($c[platform],{str(platfromDecrementDown)},200)'
 
 #-------------------------------------#
 
@@ -61,12 +61,13 @@ ExecutionScripts = {
       'Sinter1' : singleScanSinter
 }
 
-execution_script = ExecutionScripts['Sinter']
+execution_script = ExecutionScripts['Sinter1']
 build_parts = 'all'
 start_layer = 8
 currentLayer = start_layer
 initalLayer = start_layer
 end_layer = 8
+
 
 # ---------------------------------------------------------------#
 
@@ -83,12 +84,13 @@ async def executeFunc(login_data, info):
      await client.get_machine_id(info['machine_name'])
      await client.get_config_id(info['config_name'])
      
+
      os.system('cls' if os.name == 'nt' else 'clear') # Clear everything above this code | To get rid of clutter
-     multiLayerPILMFun(client, currentLayer)
+     await multiLayerPILMFun(client, currentLayer)
      
 
 async def multiLayerPILMFun(client, currentLayer):
-    
+     layersProcessed = 0 
      await client.execute(channel = 'manual_move', script = defaultPlatformHeight) # REQUIRED
      
      # Main Process # 
@@ -114,7 +116,7 @@ async def multiLayerPILMFun(client, currentLayer):
         # Slot Die Deposition Process
          await asyncio.sleep(1)
          await client.execute(channel = 'manual_move', script = finalPos)
-         dispenseOperation()  # incase the slider is not in this position from the start
+        #  dispenseOperation()  # incase the slider is not in this position from the start
          await asyncio.sleep(15) # wait for the slider to dispense the ink on the substrate
         #PSU function Goes Here
         

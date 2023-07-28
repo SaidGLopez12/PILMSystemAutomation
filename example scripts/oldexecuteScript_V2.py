@@ -52,14 +52,13 @@ slotDiePlatFormHeight_DOWN = f'$m.move_rel($c[platform],2,200)' #increasing the 
 
 # --- Execution Scripts and Variables for Multi-Layer Process --- #
 SinteringProcess = \
-'''layer= function(){
-for(p:$p){
-    $m.expose(p[next;$h],$c[scanner_1])
+'''layerProcess = function(){
+    for(p:$p){
+        $m.expose(p[next;$h],$c[scanner_1])
+    }
+    
 }
-  $m.inc_h($g)
-}
-
-repeat(2,layer)'''
+repeat(layerProcess)'''
 
 ExecutionScripts = {
       'Sinter' : SinteringProcess
@@ -67,11 +66,10 @@ ExecutionScripts = {
 
 execution_script = ExecutionScripts['Sinter']
 build_parts = 'all'
-start_layer = 1
-end_layer = 40
+start_layer = 8
 currentLayer = start_layer
 initalLayer = start_layer
-
+end_layer = 8
 # ---------------------------------------------------------------#
 
 async def executeFun(login_data, info): # main function that will be used  to control the aconity machine for PILM, macroscale SLS process and more.
@@ -95,10 +93,31 @@ async def executeFun(login_data, info): # main function that will be used  to co
     # await asyncio.sleep(2)
     # await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_UP)
     # await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
+
     await PILMFun(client,currentLayer) # you need to await defined functions as well.
     
 
-
+# async def jobProcess(client):
+#         # Start a job. 
+#         # # utils.EXECUTION_SCRIPTS['only_expose']
+#         # execution_script = ExecutionScripts['Sinter']
+#         # build_parts = 'all'
+#         # start_layer = 7
+#         # end_layer = 10
+        
+#         print(f"Starting Job from Layer {start_layer}")
+#         await client.start_job(execution_script = execution_script,
+#                                 layers = [start_layer, end_layer],
+#                                 parts = build_parts)
+#         # await asyncio.sleep(3)
+#         # print("Pausing Job")
+#         # await client.pause_job()
+#         # await asyncio.sleep(3)
+#         # print(f"Resuming Job from layer {start_layer}")
+#         # await client.resume_job()
+#         # await asyncio.sleep(3)
+#         # print("Stopping Job")
+#         # await client.stop_job()
 
 # AM Processes
 
@@ -112,7 +131,13 @@ async def PILMFun(client,currentLayer):
       #Loop For Multi-Layer
       while currentLayer <= end_layer:
         print(f"Current Layer: {currentLayer}\n")
- 
+        # if layersProcessed == 0 & layersProcessed < 0:
+        #     await client.execute(channel = 'manual_move', script = defaultPlatformHeight) # incase the platform is not in this position from the start
+        # else:
+        #     layerThickness -= 2
+        #     await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_UP)
+
+        # await asyncio.sleep(1)
         await client.execute(channel = 'manual_move', script = centerPos) # incase the slider is not in this position from the start
         await asyncio.sleep(2)
         await client.execute(channel = 'manual_move', script = initalPos)
@@ -120,27 +145,34 @@ async def PILMFun(client,currentLayer):
       
       
         #Slot Die Process
+        #await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight)
         await client.execute(channel = 'manual_move', script = finalPos)
         #dispenseOperation() # Start Dispensing Cycle
 
         await asyncio.sleep(15) # wait for the slider to dispense the ink on the substrate
+        #heatPadOneChannel(20,2,30) # Turn on PSU and Timer
         await client.execute(channel='manual_move', script=centerPos)
       
       
         # Sintering Process
-        if initalLayer == start_layer:
-           await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
-           
-        else:
-            await client.resume_job() # resume the job, but at the next layer | inital is 7, then this will start at layer 8
-        currentLayer += 1    
-        await asyncio.sleep(5) # Varies. * Something to adjust *
-        await client.pause_job() # pause the job
-    
+        # if initalLayer == start_layer:
+        #    await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
+        # else:
+        #     await client.resume_job() # resume the job, but at the next layer | inital is 7, then this will start at layer 8
+        # currentLayer += 1    
+        # await asyncio.sleep(200) # Varies. * Something to adjust *
+        # await client.pause_job() # pause the job
+        # if layersProcessed == 0 & layersProcessed < 0:
+        #     await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_DOWN)
+        # else:
+        #      layerThickness += 2
+        #      await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_DOWN)
         # await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_DOWN)    
-       
+        # # Resetting Positions 
+        # await client.execute(channel = 'manual_move', script = returnPos) # move slider back
 
-      await client.stop_job()
+        # currentLayer += 1  
+        # await client.stop_job()
 
       
       
@@ -224,9 +256,8 @@ if __name__ == '__main__': # Required * Explain *
     info = {
         'machine_name' : '1.4404',
         'config_name': 'LinearizedPower_AlignedAxisToChamber',
-        'job_name': 'Said',
+        'job_name': 'CuO w/EG on PCB _various hatching',
         'studio_version': 1
     }
-    #CuO w/EG on PCB _various hatching
     
     result = asyncio.run(executeFun(login_data, info), debug = True) # required to control the machine * explain 
