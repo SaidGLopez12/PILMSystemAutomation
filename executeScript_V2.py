@@ -59,14 +59,17 @@ for(p:$p){
 repeat(layer)'''
 
 doubleScanSinter = \
-'''layer = function(){
+'''
+layer = function(){
     for(p:$p){
         $m.expose(p[next;$h],$c[scanner_1])
     }
     $m.inc_h($g)
 }
+  
+repeat(2,layer)
 
-repeat(2,layer)'''
+'''
 
 
 
@@ -84,16 +87,16 @@ repeat(3,layer)'''
 sinterTechniques = {
       'single_Scan' : singleScanSinter,
       'double_Scan' : doubleScanSinter,
-      'multi_Scan' : multiScanSinter
+      'multi_Scan' :  multiScanSinter
       
 }
 
 execution_script = sinterTechniques['single_Scan']
 build_parts = 'all'
-start_layer = 8
+start_layer = 1
 currentLayer = start_layer
-initalLayer = start_layer
-end_layer = 8
+initalLayer = start_layer # This is only ever used in the multi layer, but only once
+end_layer = 4
 layersProcessed = 0 
 
 # ---------------------------------------------------------------#
@@ -113,10 +116,11 @@ async def executeFunc(login_data, info):
      
 
      os.system('cls' if os.name == 'nt' else 'clear') # Clear everything above this code | To get rid of clutter
-     await multiLayerPILMFun(client, currentLayer)
+     #await singleLayerPILMFunc(client)
+     await multiLayerPILMFun(client, currentLayer, layersProcessed, platformIncrementUp, platfromDecrementDown)
      
 
-async def multiLayerPILMFun(client, currentLayer):
+async def multiLayerPILMFun(client, currentLayer, layersProcessed, platformIncrementUp, platfromDecrementDown):
      await client.execute(channel = 'manual_move', script = defaultPlatformHeight) # REQUIRED
      
      # Main Process # 
@@ -127,41 +131,43 @@ async def multiLayerPILMFun(client, currentLayer):
      while currentLayer <= end_layer:
          print(f"Current Layer: {currentLayer}\n")
          
-         if layersProcessed == 0 & layersProcessed < 0:
-             await client.execute(channel = 'manual_move', script = defaultPlatformHeight) # incase the platfrom is not in this position
-         else:
-             platformIncrementUp += 0.05
+        #  if layersProcessed == 0:
+        #      await client.execute(channel = 'manual_move', script = defaultPlatformHeight) # incase the platfrom is not in this position
+         if layersProcessed > 0:
+             platformIncrementUp -= -0.05
              await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_UP2)
 
         # Deposition Process Preparation
-         await asyncio.sleep(1)
+         await asyncio.sleep(5)
          await client.execute(channel = 'manual_move', script = centerPos)
-         await asyncio.sleep(2)
+         await asyncio.sleep(1)
          await client.execute(channel = 'manual_move', script = initalPos)
             
         # Slot Die Deposition Process
          await asyncio.sleep(1)
          await client.execute(channel = 'manual_move', script = finalPos)
         #  dispenseOperation()  # incase the slider is not in this position from the start
-         await asyncio.sleep(15) # wait for the slider to dispense the ink on the substrate
+         await asyncio.sleep(10) # wait for the slider to dispense the ink on the substrate
         #PSU function Goes Here
         
         # Start Sintering Process
          await client.execute(channel='manual_move', script=centerPos) # Move it back to starting position
-         await asyncio.sleep(1)
-         if initalLayer == start_layer:
+         await asyncio.sleep(5)
+
+         if currentLayer == start_layer:
            await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
          else:
             await client.resume_job() # resume the job, but at the next layer | inital is 7, then this will start at layer 8
-            currentLayer += 1    
-            await asyncio.sleep(200) # Varies. * Something to adjust *
-            await client.pause_job() # pause the job
+                
+         currentLayer += 1
+         await asyncio.sleep(10) # Varies. * Something to adjust 
+         await client.pause_job() # pause the job    
          
         # Preparing for next layer
-         if layersProcessed == 0 & layersProcessed < 0:
+         if layersProcessed == 0 :
             await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_DOWN2)
-         else:
-             platfromDecrementDown += 2
+         if layersProcessed > 0:
+             platfromDecrementDown += 0.05
              await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_DOWN2)
              
          layersProcessed += 1  
@@ -171,7 +177,7 @@ async def multiLayerPILMFun(client, currentLayer):
 async def singleLayerPILMFunc(client):
      await client.execute(channel = 'manual_move', script = defaultPlatformHeight)
     
-     print ("Starting Multi-Layer PILM Process ")    
+     print ("Starting Single-Layer PILM Process")    
      print(f"Current Layer: {currentLayer}\n")
      
      # Deposition Process Preparation
@@ -184,12 +190,12 @@ async def singleLayerPILMFunc(client):
      await asyncio.sleep(1)
      await client.execute(channel = 'manual_move', script = finalPos)
      #dispenseOperation()  # incase the slider is not in this position from the start
-     await asyncio.sleep(15) # wait for the slider to dispense the ink on the substrate
+     await asyncio.sleep(5) # wait for the slider to dispense the ink on the substrate
      #PSU function Goes Here
      
      # Start Sintering Process
      await client.execute(channel='manual_move', script=centerPos) # Move it back to starting position
-     await asyncio.sleep(1)
+     await asyncio.sleep(5)
      await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
      await asyncio.sleep(5) # Varies. * Something to adjust *   
          
@@ -208,8 +214,8 @@ if __name__ == '__main__': # Required * Explain *
     info = {
         'machine_name' : '1.4404',
         'config_name': 'LinearizedPower_AlignedAxisToChamber',
-        'job_name': 'CuO w/EG on PCB _various hatching',
+        'job_name': 'Said',
         'studio_version': 1
     }
-    
+    #CuO w/EG on PCB _various hatching
     result = asyncio.run(executeFunc(login_data, info), debug = True) # required to control the machine * explain 
