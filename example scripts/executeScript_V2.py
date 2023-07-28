@@ -24,14 +24,14 @@ platformRearPos = "30"
 
 # AconityScripts for SLIDER
 #returnPos = f'$m.move_abs($c[slider], {positiveEndPos}, 250)'
-initalPos = '$m.move_abs($c[slider], 50,250)' # move slider to first pos of deposition process
+initalPos = '$m.move_abs($c[slider], 80,250)' # move slider to first pos of deposition process
 finalPos = '$m.move_abs($c[slider], 165,10)' # move slider to final pos of deposition process | Get's called with the syringe operation function
 centerPos = f'$m.move_abs($c[slider],{centerSlidePos},250)' # this will be used to move slider away from the laser during the sintering process | Default Pos too
  
 # ------------------------------------ #
 
 # -- Platform Movement Variables And AconityScripts-- #
-defaultHeight = "17.70"
+defaultHeight = "15.95"
 layersProcessed = 0
 platformIncrementUp = -2
 platfromDecrementDown = 2 
@@ -47,27 +47,54 @@ slotDiePlatFormHeight_DOWN2 = f'$m.move_rel($c[platform],{str(platfromDecrementD
 #-------------------------------------#
 
 # --- Execution Scripts and Variables for Single and Multi-Layer Process --- #
-
+# Includes scripts on Single and Multi Scanning #
 singleScanSinter = \
-'''layerProcess = function(){
+'''layer= function(){
+for(p:$p){
+    $m.expose(p[next;$h],$c[scanner_1])
+}
+  $m.inc_h($g)
+}
+
+repeat(layer)'''
+
+doubleScanSinter = \
+'''layer = function(){
     for(p:$p){
         $m.expose(p[next;$h],$c[scanner_1])
     }
-    
-}
-repeat(layerProcess)'''
-
-ExecutionScripts = {
-      'Sinter1' : singleScanSinter
+    $m.inc_h($g)
 }
 
-execution_script = ExecutionScripts['Sinter1']
+repeat(2,layer)'''
+
+
+
+multiScanSinter = \
+'''layer = function(){
+    for(p:$p){
+        $m.expose(p[next;$h],$c[scanner_1])
+    }
+    $m.inc_h($g)
+}
+
+repeat(3,layer)'''
+
+
+sinterTechniques = {
+      'single_Scan' : singleScanSinter,
+      'double_Scan' : doubleScanSinter,
+      'multi_Scan' : multiScanSinter
+      
+}
+
+execution_script = sinterTechniques['single_Scan']
 build_parts = 'all'
 start_layer = 8
 currentLayer = start_layer
 initalLayer = start_layer
 end_layer = 8
-
+layersProcessed = 0 
 
 # ---------------------------------------------------------------#
 
@@ -90,11 +117,10 @@ async def executeFunc(login_data, info):
      
 
 async def multiLayerPILMFun(client, currentLayer):
-     layersProcessed = 0 
      await client.execute(channel = 'manual_move', script = defaultPlatformHeight) # REQUIRED
      
      # Main Process # 
-     print ("Starting PILM Process ")    
+     print ("Starting Multi-Layer PILM Process ")    
      print(f"Inital Layer: {initalLayer}\n")
      
      # Loop for Layering Process
@@ -122,7 +148,7 @@ async def multiLayerPILMFun(client, currentLayer):
         
         # Start Sintering Process
          await client.execute(channel='manual_move', script=centerPos) # Move it back to starting position
-         
+         await asyncio.sleep(1)
          if initalLayer == start_layer:
            await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
          else:
@@ -142,8 +168,30 @@ async def multiLayerPILMFun(client, currentLayer):
              
      await client.stop_job()
     
-         
-         
+async def singleLayerPILMFunc(client):
+     await client.execute(channel = 'manual_move', script = defaultPlatformHeight)
+    
+     print ("Starting Multi-Layer PILM Process ")    
+     print(f"Current Layer: {currentLayer}\n")
+     
+     # Deposition Process Preparation
+     await asyncio.sleep(1)
+     await client.execute(channel = 'manual_move', script = centerPos)
+     await asyncio.sleep(2)
+     await client.execute(channel = 'manual_move', script = initalPos)
+     
+     # Slot Die Deposition Process
+     await asyncio.sleep(1)
+     await client.execute(channel = 'manual_move', script = finalPos)
+     #dispenseOperation()  # incase the slider is not in this position from the start
+     await asyncio.sleep(15) # wait for the slider to dispense the ink on the substrate
+     #PSU function Goes Here
+     
+     # Start Sintering Process
+     await client.execute(channel='manual_move', script=centerPos) # Move it back to starting position
+     await asyncio.sleep(1)
+     await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
+     await asyncio.sleep(5) # Varies. * Something to adjust *   
          
 # Conditional statment will cause the program to be executed if it's condition is met.
 if __name__ == '__main__': # Required * Explain *
