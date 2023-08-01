@@ -4,7 +4,6 @@ import os
 import signal
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-from threading import Thread
 
 from AconitySTUDIO_client import AconitySTUDIOPythonClient 
 from AconitySTUDIO_client import utils
@@ -104,13 +103,7 @@ end_layer = 10
 layersProcessed = 0 
 
 #--------------------------------#
-# -- Threading -- #
-async def dispensingFun(client):
-    await client.execute(channel = 'manual_move', script = finalPos)
 
-t1 = Thread(target=dispensingFun)
-t2 = Thread(target=dispenseOperation)
-# ---------------------------------------------------------------#
 
 
 
@@ -132,12 +125,13 @@ async def executeFunc(login_data, info):
      
 
      os.system('cls' if os.name == 'nt' else 'clear') # Clear everything above this code | To get rid of clutter
-    #  await client.execute(channel = 'manual_move', script = initalPos)
-    #  await asyncio.sleep(1)
-    #  await client.execute(channel = 'manual_move', script = finalPos)
-     await singleLayerPILMFunc(client)
-    #  await multiLayerPILMFun(client, currentLayer, layersProcessed, platformIncrementUp, platfromDecrementDown)
+     await testScript(client)
+     # await singleLayerPILMFunc(client)
+     # await multiLayerPILMFun(client, currentLayer, layersProcessed, platformIncrementUp, platfromDecrementDown)
      
+async def dispenseFunc(client):
+    print("Hello")    
+
 
 async def multiLayerPILMFun(client, currentLayer, layersProcessed, platformIncrementUp, platfromDecrementDown):
      await client.execute(channel = 'manual_move', script = defaultPlatformHeight) # REQUIRED
@@ -161,7 +155,8 @@ async def multiLayerPILMFun(client, currentLayer, layersProcessed, platformIncre
         # Slot Die Deposition Process
          await client.execute(channel = 'manual_move', script = initalPos)
          await asyncio.sleep(2)
-         await despositionProcess(client)
+         await client.execute(channel = 'manual_move', script = finalPos)
+         dispenseOperation()
          await asyncio.sleep(10) # wait for the slider to dispense the ink on the substrate
         #PSU function Goes Here
         
@@ -191,11 +186,6 @@ async def multiLayerPILMFun(client, currentLayer, layersProcessed, platformIncre
          layersProcessed += 1  
              
      await client.stop_job()
-
-async def despositionProcess(client):
-    dispenseOperation()
-    await client.execute(channel = 'manual_move', script = finalPos)
-    # loop = coroutine 
     
 
      
@@ -214,10 +204,8 @@ async def singleLayerPILMFunc(client):
      # Slot Die Deposition Process
      await asyncio.sleep(1)
      
-     await despositionProcess(client)
-    #  await client.execute(channel = 'manual_move', script = finalPos)
-    #  loop.run_in_executor(func=dispenseOperation())
-       # incase the slider is not in this position from the start
+     await client.execute(channel = 'manual_move', script = finalPos)
+     dispenseOperation()
      await asyncio.sleep(15) # wait for the slider to dispense the ink on the substrate
      #PSU function Goes Here
      
@@ -226,9 +214,36 @@ async def singleLayerPILMFunc(client):
      await asyncio.sleep(5)
      await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
     #  await asyncio.sleep(200) # Varies. * Something to adjust *   
+    
 
 
-
+     
+async def testScript(client):
+     await client.execute(channel = 'manual_move', script = defaultPlatformHeight)
+    
+     print ("Starting Single-Layer PILM Process")    
+     print(f"Current Layer: {currentLayer}\n")
+     
+     # Deposition Process Preparation
+     await asyncio.sleep(1)
+     await client.execute(channel = 'manual_move', script = centerPos)
+     await asyncio.sleep(2)
+     await client.execute(channel = 'manual_move', script = initalPos)
+     
+     # Slot Die Deposition Process
+     await asyncio.sleep(1)
+     
+     await client.execute(channel = 'manual_move', script = finalPos)
+     dispenseOperation()
+     await asyncio.sleep(15) # wait for the slider to dispense the ink on the substrate
+     #PSU function Goes Here
+     
+     # Start Sintering Process
+     await client.execute(channel='manual_move', script=centerPos) # Move it back to starting position
+     await asyncio.sleep(5)
+     await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
+    #  await asyncio.sleep(200) # Varies. * Something to adjust *   
+    
 
 # Conditional statment will cause the program to be executed if it's condition is met.
 if __name__ == '__main__': # Required * Explain *
