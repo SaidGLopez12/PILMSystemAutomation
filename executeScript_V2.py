@@ -130,7 +130,8 @@ async def executeFunc(login_data, info):
      # await multiLayerPILMFun(client, currentLayer, layersProcessed, platformIncrementUp, platfromDecrementDown)
      
 async def dispenseFunc(client):
-    print("Hello")    
+     await client.execute(channel = 'manual_move', script = finalPos)
+     await dispenseOperation()
 
 
 async def multiLayerPILMFun(client, currentLayer, layersProcessed, platformIncrementUp, platfromDecrementDown):
@@ -233,8 +234,7 @@ async def testScript(client):
      # Slot Die Deposition Process
      await asyncio.sleep(1)
      
-     await client.execute(channel = 'manual_move', script = finalPos)
-     dispenseOperation()
+     await dispenseFunc(client)
      await asyncio.sleep(15) # wait for the slider to dispense the ink on the substrate
      #PSU function Goes Here
      
@@ -242,7 +242,7 @@ async def testScript(client):
      await client.execute(channel='manual_move', script=centerPos) # Move it back to starting position
      await asyncio.sleep(5)
      await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
-    #  await asyncio.sleep(200) # Varies. * Something to adjust *   
+    # #  await asyncio.sleep(200) # Varies. * Something to adjust *   
     
 
 # Conditional statment will cause the program to be executed if it's condition is met.
