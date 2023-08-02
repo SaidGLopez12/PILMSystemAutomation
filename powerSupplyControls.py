@@ -1,4 +1,5 @@
 #------Libraries------#
+import asyncio
 import pyvisa # frontend to the VISA library
 import time # for delays and timer function
 #import os # for datalogging
@@ -178,7 +179,7 @@ def timerFunction(timeInSec):
         timeInSec -= 1 # reduce the total input time by 1 each repetition.
 #----------------------------#
 # Main function with one channel. | Voltage and Amps are float values. timeInSec is int
-def heatPadOneChannel(voltage,amps,timeInSec):  
+async def heatPadOneChannel(voltage,amps,timeInSec):  
     #-Getting ID of PSU and preparing for PILM Process-#
     rm = pyvisa.ResourceManager() # create resource manager to find id for PSU
     powerSupply = rm.open_resource('USB0::0x1AB1::0x0E11::DP8C243004769::INSTR') # open the VISA resource for the power supply unit
@@ -193,7 +194,7 @@ def heatPadOneChannel(voltage,amps,timeInSec):
     powerSupply.write(':OUTP CH1, OFF') # turn off the channel after the timer reaches 0.
 
 # Main function with multiple channels. 
-def heatPadMutipleChannels(voltage,amps,timeInSec,numOfChannels): # numOfChannels is a int val. 
+async def heatPadMutipleChannels(voltage,amps,timeInSec,numOfChannels): # numOfChannels is a int val. 
     rm = pyvisa.ResourceManager()
     powerSupply = rm.open_resource('USB0::0x1AB1::0x0E11::DP8C243004769::INSTR')
     

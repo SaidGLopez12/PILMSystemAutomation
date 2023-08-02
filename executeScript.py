@@ -8,8 +8,8 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 from AconitySTUDIO_client import AconitySTUDIOPythonClient 
 from AconitySTUDIO_client import utils
 
-#from powerSupplyControls import timerFunction, heatPadOneChannel, heatPadMultipleChannels
-from syringeDispenserControls import PILMDispenseOperation, dispenseOperation
+from powerSupplyControls import timerFunction, heatPadOneChannel, heatPadMutipleChannels
+# from syringeDispenserControls import PILMDispenseOperation, dispenseOperation
 #-------------------------------------#
 
 # -- Initial Variables and Scripts -- # 
@@ -32,8 +32,8 @@ centerPos = f'$m.move_abs($c[slider],{centerSlidePos},250)' # this will be used 
 # ------------------------------------ #
 
 # -- Platform Movement Variables And AconityScripts-- #
-defaultHeight = "18.050"
-layersProcessed = 0
+defaultHeight = "18.00" # 18.050
+PILM_Loop = 0
 layerThickness = 0.05
 platformIncrementUp = -2.00
 platfromDecrementDown = 2.00
@@ -120,29 +120,34 @@ async def executeFunc(login_data, info):
      
 
      os.system('cls' if os.name == 'nt' else 'clear') # Clear everything above this code | To get rid of clutter
-     await testScript(client)
-     # await singleLayerPILMFunc(client)
-     # await multiLayerPILMFun(client, currentLayer, layersProcessed, platformIncrementUp, platfromDecrementDown)
+    #  await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
+    #  await testScript(client)
+    #  await singleLayerPILMFunc(client)
+     await multiLayerPILMFun(client, currentLayer, PILM_Loop, platformIncrementUp, platfromDecrementDown)
+     
 
 # Function for slot-die dispensing process 
-async def dispenseFunction(client):
-    await client.execute(channel = 'manual_move', script = finalPos)
-    await PILMDispenseOperation()
+# async def dispenseFunction(client):
+#     await client.execute(channel = 'manual_move', script = finalPos)
+#     await PILMDispenseOperation()
 
 
-async def multiLayerPILMFun(client, currentLayer, layersProcessed, platformIncrementUp, platfromDecrementDown):
+async def multiLayerPILMFun(client, currentLayer, PILM_Loop, platformIncrementUp, platfromDecrementDown):
      await client.execute(channel = 'manual_move', script = defaultPlatformHeight) # REQUIRED for Absolute Movement
-     
+     PILM_Loop += 1 # Start on the first PILM Loop
+
      # Main Process # 
      print ("Starting Multi-Layer PILM Process ")    
      print(f"Inital Layer: {initalLayer}\n")
      
      # Loop for Layering Process
      while currentLayer <= end_layer:
-         print(f"Current Layer: {currentLayer}\n")
+         print(f"\nCurrent Layer: {currentLayer}")
+         print(f"Loop: {PILM_Loop}\n")
         
-         if layersProcessed > 0:
+         if PILM_Loop > 1:
              platformIncrementUp += layerThickness
+            #   platfromDecrementDown += layerThickness
              
         # Deposition Process Preparation
          await asyncio.sleep(1)
@@ -150,20 +155,22 @@ async def multiLayerPILMFun(client, currentLayer, layersProcessed, platformIncre
          await asyncio.sleep(1)
          
          # Lower platform for slider 
-         if layersProcessed > 0:
+         if PILM_Loop > 0:
               await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_DOWN2)
               
         # Slot Die Deposition Process
          await client.execute(channel = 'manual_move', script = initalPos)
          await asyncio.sleep(2)
          await client.execute(channel = 'manual_move', script = finalPos)
-         dispenseOperation()
+        #  dispenseOperation()
+        #  await dispenseFunction(client)
          await asyncio.sleep(10) # wait for the slider to dispense the ink on the substrate
          
         # Substrate Drying Process
         #PSU function Goes Here
+        #  await heatPadMutipleChannels(5,2,10,3)
          await client.execute(channel='manual_move', script=centerPos) # Move it back to starting position
-         await asyncio.sleep(2)
+         await asyncio.sleep(7)
          
         # Start Sintering Process
          if currentLayer == start_layer:
@@ -175,14 +182,12 @@ async def multiLayerPILMFun(client, currentLayer, layersProcessed, platformIncre
          await client.pause_job() # pause the job    
          currentLayer += 1 # Increase after sintering is done
          
-         
-         
         # Preparing for next layer
-         if layersProcessed > 0:
+         if PILM_Loop > 0:
              await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_UP2)
 
             
-         layersProcessed += 1  
+         PILM_Loop += 1  
              
      await client.stop_job() # Stop the function after the while loop is false and terminates
     
@@ -203,7 +208,7 @@ async def singleLayerPILMFunc(client):
      # Slot Die Deposition Process
      await asyncio.sleep(1)
      await client.execute(channel = 'manual_move', script = finalPos)
-     dispenseOperation()
+    #  await dispenseFunction(client)
      await asyncio.sleep(15) # wait for the slider to dispense the ink on the substrate
      
      # Substrate Drying Process
@@ -211,9 +216,9 @@ async def singleLayerPILMFunc(client):
      
      # Start Sintering Process
      await client.execute(channel='manual_move', script=centerPos) # Move it back to starting position
-     await asyncio.sleep(5)
+     await asyncio.sleep(3)
      await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
-    #  await asyncio.sleep(200) # Varies. * Something to adjust *   
+     await asyncio.sleep(10) # Varies. * Something to adjust *   
      await client.stop_job()
     
 
@@ -233,11 +238,12 @@ async def testScript(client):
      
      # Slot Die Deposition Process
      await asyncio.sleep(1)
-     await dispenseFunction(client)
+     await client.execute(channel = 'manual_move', script = finalPos)
      await asyncio.sleep(15) # wait for the slider to dispense the ink on the substrate
      
      # Substrate Drying Process
      #PSU function Goes Here
+    #  await heatPadMutipleChannels(5,2,10,3)
      
      # Start Sintering Process
      await client.execute(channel='manual_move', script=centerPos) # Move it back to starting position
