@@ -1,21 +1,24 @@
 # -- Importing Libraries and Files -- # 
-import asyncio
-import os
-import signal
+import asyncio # for AconityStudio Integration
+import os # to clear and clean console
+import signal 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-
+# import AconityStudio classes, functions and variables
 from AconitySTUDIO_client import AconitySTUDIOPythonClient 
 from AconitySTUDIO_client import utils
 
+# import PSU control functions and Syringe Dispense control functions
 from powerSupplyControls import timerFunction, heatPadOneChannel, heatPadMutipleChannels
-# from syringeDispenserControls import PILMDispenseOperation, dispenseOperation
-#-------------------------------------#
+# from syringeDispenseControls import PILMDispenseOperation, dispenseOperation
+#------------------------------------------------------------------------------------#
 
-# -- Initial Variables and Scripts -- # 
-# -- Slider Movement Variables And AconityScripts-- #
 
-# default positions for SLIDER
+# ----------- Initial Variables and Scripts ----------- # 
+
+# --- Slider Movement Variables And AconityScripts --- #
+
+# default positions for SLIDER 
 positiveEndPos = "300"
 centerSlidePos = "260"
 platformInFrontPos = "210"
@@ -25,17 +28,16 @@ platformRearPos = "30"
 #returnPos = f'$m.move_abs($c[slider], {positiveEndPos}, 250)'
 initalPos = '$m.move_abs($c[slider], 60,250)' # move slider to first pos of deposition process
 finalPos = '$m.move_abs($c[slider], 165,10)' # move slider to final pos of deposition process | Get's called with the syringe operation function
-# initalPos = '$m.move_abs($c[slider], 165,200)' # move slider to first pos of deposition process
-# finalPos = '$m.move_abs($c[slider], 75,10)' # move slider to final pos of deposition process | Get's called with the syringe operation function
 centerPos = f'$m.move_abs($c[slider],{centerSlidePos},250)' # this will be used to move slider away from the laser during the sintering process | Default Pos too
  
-# ------------------------------------ #
 
-# -- Platform Movement Variables And AconityScripts-- #
-defaultHeight = "18.00" # 18.050
-PILM_Loop = 0
-layerThickness = 0.05
-platformIncrementUp = -2.00
+# --- Platform Movement Variables And AconityScripts --- #
+
+# Platform variables for Multi-Layer PILM Process
+defaultHeight = "18.00" # default height of the platform from the start, adjust when needed
+PILM_Loop = 0 # keep count of the total PILM iterations
+layerThickness = 0.05 # adjust platform for desired layer thickness for each iteration
+platformIncrementUp = -2.00 
 platfromDecrementDown = 2.00
 
 # AconityScript for PLATFORM Movement
@@ -43,14 +45,16 @@ defaultPlatformHeight = f'$m.move_abs($c[platform],{defaultHeight}, 200)'
 slotDiePlatFormHeight_UP = f'$m.move_rel($c[platform],-1.95,200)' # decreasing the value makes the platform go up
 slotDiePlatFormHeight_DOWN = f'$m.move_rel($c[platform],2,200)' #increasing the value makes the platform go down
 
-slotDiePlatFormHeight_UP2 = f'$m.move_rel($c[platform],{platformIncrementUp},200)'
+slotDiePlatFormHeight_UP2 = f'$m.move_rel($c[platform],{platformIncrementUp},200)' # 
 slotDiePlatFormHeight_DOWN2 = f'$m.move_rel($c[platform],{platfromDecrementDown},200)'
 
-#-------------------------------------#
+#------------------------------------------------------------------------------------#
 
 # --- Execution Scripts and Variables for Single and Multi-Layer Process --- #
-# Includes scripts on Single and Multi Scanning #
-singleScanSinter = \
+
+#--- Includes scripts for Single and Multi-Layer Sintering ---#
+
+singleLayerSinter = \
 '''layer= function(){
 for(p:$p){
     $m.expose(p[next;$h],$c[scanner_1])
@@ -62,7 +66,7 @@ repeat(layer)'''
 
 # Will not repeat the same layer. Example: If its from layers 1 to 10, the first iteration will be layers 1 and 2.
 # It will not be layer 1 and then layer 1 again.
-doubleScanSinter = \
+doubleLayerSinter = \
 '''
 layer = function(){
     for(p:$p){
@@ -77,7 +81,7 @@ repeat(2,layer)
 
 
 
-multiScanSinter = \
+multiLayerSinter = \
 '''layer = function(){
     for(p:$p){
         $m.expose(p[next;$h],$c[scanner_1])
@@ -88,24 +92,25 @@ multiScanSinter = \
 repeat(3,layer)'''
 
 
-sinterTechniques = {
-      'single_Scan' : singleScanSinter,
-      'double_Scan' : doubleScanSinter,
-      'multi_Scan' :  multiScanSinter
+sinterConfigs = {
+      'single_Layer' : singleLayerSinter,
+      'double_Layer' : doubleLayerSinter,
+      'multi_Layer' :  multiLayerSinter
       
 }
 
-execution_script = sinterTechniques['single_Scan']
-build_parts = 'all'
-start_layer = 8
-currentLayer = start_layer
+# Job Configurations | Select layers and sinter config here
+execution_script = sinterConfigs['single_Layer'] # Select the configuration for laser sintering here.
+build_parts = 'all' # Don't change. Will select all the existing parts within a job for the sintering process.
+start_layer = 8 
+currentLayer = start_layer # Used to tell the current layer within the single and multi-layer process.
 initalLayer = start_layer # This is only ever used in the multi layer, but only once
-end_layer = 10
+end_layer = 10 
 
 
-#--------------------------------#
+#-----------------------------------------------------------------------------------#
 
-async def executeFunc(login_data, info):
+async def executeFunc(login_data, info): # main function to call for the PILM process
     
     # create client with factory method
      client = await AconitySTUDIOPythonClient.create(login_data)
@@ -125,6 +130,7 @@ async def executeFunc(login_data, info):
     #  await singleLayerPILMFunc(client)
      await multiLayerPILMFun(client, currentLayer, PILM_Loop, platformIncrementUp, platfromDecrementDown)
      
+#------------------------------------------------------------------------------------#
 
 # Function for slot-die dispensing process 
 # async def dispenseFunction(client):
@@ -191,7 +197,7 @@ async def multiLayerPILMFun(client, currentLayer, PILM_Loop, platformIncrementUp
              
      await client.stop_job() # Stop the function after the while loop is false and terminates
     
-
+#------------------------------------------------------------------------------------#
 # Single Layer PILM Process
 async def singleLayerPILMFunc(client):
      await client.execute(channel = 'manual_move', script = defaultPlatformHeight)
@@ -221,7 +227,7 @@ async def singleLayerPILMFunc(client):
      await asyncio.sleep(10) # Varies. * Something to adjust *   
      await client.stop_job()
     
-
+#------------------------------------------------------------------------------------#
 
 # Test function for Single-Layer PILM Process
 async def testScript(client):
@@ -252,6 +258,7 @@ async def testScript(client):
     #  await asyncio.sleep(200) # Varies. * Something to adjust *
     #  await client.stop_job()
     
+#------------------------------------------------------------------------------------#
 
 # Conditional statment will cause the program to be executed if it's condition is met.
 if __name__ == '__main__': # Required * Explain *

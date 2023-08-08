@@ -1,5 +1,5 @@
 #------Libraries------#
-import asyncio
+import asyncio # for AconityStudio integration
 import pyvisa # frontend to the VISA library
 import time # for delays and timer function
 #import os # for datalogging
@@ -178,6 +178,8 @@ def timerFunction(timeInSec):
         time.sleep(1) 
         timeInSec -= 1 # reduce the total input time by 1 each repetition.
 #----------------------------#
+
+#------AconityStudio Integration----------------------#
 # Main function with one channel. | Voltage and Amps are float values. timeInSec is int
 async def heatPadOneChannel(voltage,amps,timeInSec):  
     #-Getting ID of PSU and preparing for PILM Process-#
