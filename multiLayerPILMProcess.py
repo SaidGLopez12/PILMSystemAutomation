@@ -1,9 +1,13 @@
 import asyncio
+import time
 
 defaultPlatformHeight = "Hello"
 centerPos = "Yeah"
 initalPos = "Yea"
 finalPos = "Ye"
+build_parts = "Y"
+
+
 execution_script = "1"
 slotDiePlatFormHeight_UP2 = "1"
 slotDiePlatFormHeight_DOWN2 = "2"
@@ -11,13 +15,15 @@ slotDiePlatFormHeight_DOWN2 = "2"
 
 initalLayer = 1
 currentLayer = initalLayer
-start_Layer = 1
-end_Layer = 5
+start_layer = 1
+end_layer = 5
 PILM_Loop = 0
 
 platFormIncrementUp = -2.00
 layerThickness = 0.05
 
+start_time = 0
+end_time = 0
 
 async def multiLayerPILMFun(client, currentLayer,PILM_Loop):
     # things to do before loop statement
@@ -30,7 +36,7 @@ async def multiLayerPILMFun(client, currentLayer,PILM_Loop):
     
     #-------------------------------------------#
     
-    while currentLayer <= end_Layer:
+    while currentLayer <= end_layer:
         print(f"\nCurrent Layer: {currentLayer}")
         print(f"Loop: {PILM_Loop}\n")
         
@@ -57,12 +63,12 @@ async def multiLayerPILMFun(client, currentLayer,PILM_Loop):
         # Substrate Drying Process
         # PSU Functiton goes here
         # await heatPadMultipleChannels(5,2,10,3)
-        await client.execute(channel='manual_move', script=centerPos) # Move it back to starting position
+        await client.execute(channel='manual_move', script = centerPos) # Move it back to starting position
         await asyncio.sleep(7)
         
         # Start Sintering Process
-        if currentLayer == start_Layer:
-           await client.start_job(execution_script = execution_script,layers = [start_Layer, end_Layer],parts = build_parts) 
+        if currentLayer == start_layer:
+           await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
         else:
             await client.resume_job() # resume the job, but at the next layer | inital is 7, then this will start at layer 8
                 
@@ -77,3 +83,28 @@ async def multiLayerPILMFun(client, currentLayer,PILM_Loop):
     #-------------------------------------------#
     
     await client.stop_job() # Stop the function after the while loop is false and terminates
+    
+    
+    #--------------------------------------------------------------------------------------------------------------------------#
+    def time_convert(sec):
+        mins = sec // 60
+        sec = sec & 60
+        hours = mins // 60
+        mins = mins & 60
+        print("Time Lapsed for Sintering = {0}:{1}:{2}".format(int(hours),int(mins),sec))
+        
+    
+    async def jobProcess(execution_script, start_layer, end_layer, build_parts, currentLayer):
+        if currentLayer == start_layer:
+           await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
+        else:
+            await client.resume_job() # resume the job, but at the next layer | inital is 7, then this will start at layer 8
+    
+    async def sinterProcess():
+        loop = asyncio.get_event_loop()
+        start_time = time.time()
+        loop.run_until_complete(await jobProcess(execution_script, start_layer, end_layer, build_parts, currentLayer)) # calls the job process to either start or resume a job
+        end_time = time.time()
+        
+        time_lapsed = end_time - start_time
+        time_convert(time_lapsed)
