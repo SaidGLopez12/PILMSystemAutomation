@@ -8,6 +8,16 @@ task_read.ai_channels.add_ai_voltage_chan('Dev1/ai0', 'inputChan_0', min_val= 0.
 task_read.start() # start the analog input channel
 '''
 
+# Timer for slot-die dispensing process
+def timerFunction(timeInSec):
+    while timeInSec: # while timer is not 0. (1 = true, 0 = false) (True as long as it contains a val)
+        mins, secs = divmod(timeInSec, 60) # modulo of timeInSec and 60. Returns the quotient and the remainder.
+        timer = '{:02d}:{:02d}'.format(mins, secs) # format the variable as 00.00
+        print("Time left:",timer, end="\r") # print the current timer value, create an end variable that creates a new line.
+        time.sleep(1) 
+        timeInSec -= 1 # reduce the total input time by 1 each repetition.
+
+
 #----Operations----#
 # Function to Test the Syringe Dispenser only # 
 def dispenseOperation(): # This function will serve as the signal to start the dispensing cycle 
@@ -42,7 +52,7 @@ async def PILMDispenseOperation(): # This function will serve as the signal to s
     task.write(0) 
     time.sleep(1)
     task.write(5)
-    time.sleep(1.5) # Doesn't seen to work the way we want. Could it be a cycle issue?
+    timerFunction(3)
     task.write(0)
 
     task.stop() # Required | Stop the analog output channel once it's not needed
