@@ -6,12 +6,12 @@ import signal
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 # import AconityStudio classes, functions and variables
-from AconitySTUDIO_client import AconitySTUDIOPythonClient 
-from AconitySTUDIO_client import utils
+# from AconitySTUDIO_client import AconitySTUDIOPythonClient 
+# from AconitySTUDIO_client import utils
 
 # import PSU control functions and Syringe Dispense control functions
 # from powerSupplyControls import timerFunction, heatPadOneChannel, heatPadMutipleChannels
-from syringeDispenseControls import PILMDispenseOperation, dispenseOperation
+#from syringeDispenseControls import PILMDispenseOperation, dispenseOperation
 #------------------------------------------------------------------------------------#
 
 
@@ -21,15 +21,19 @@ from syringeDispenseControls import PILMDispenseOperation, dispenseOperation
 
 # default positions for SLIDER 
 positiveEndPos = "300"
-centerSlidePos = "260"
+centerPos = "260"
 platformInFrontPos = "210"
 platformRearPos = "30"
 
+# Slot-die + Slider Positions
+start_postion = "60"
+end_position = "165"
+
 # AconityScripts for SLIDER
 #returnPos = f'$m.move_abs($c[slider], {positiveEndPos}, 250)'
-initalPos = '$m.move_abs($c[slider], 60,250)' # move slider to first pos of deposition process
-finalPos = '$m.move_abs($c[slider], 165,10)' # move slider to final pos of deposition process | Get's called with the syringe operation function
-centerPos = f'$m.move_abs($c[slider],{centerSlidePos},250)' # this will be used to move slider away from the laser during the sintering process | Default Pos too
+slotDieStartPos = '$m.move_abs($c[slider], 60,250)' # move slider to first pos of deposition process
+slotDieEndPos = '$m.move_abs($c[slider], 165,10)' # move slider to final pos of deposition process | Get's called with the syringe operation function
+centerPos_Slider = f'$m.move_abs($c[slider],{centerPos},250)' # this will be used to move slider away from the laser during the sintering process | Default Pos too
  
 
 # --- Platform Movement Variables And AconityScripts --- #
@@ -111,6 +115,7 @@ end_layer = 10
 
 #-----------------------------------------------------------------------------------#
 
+
 async def executeFunc(login_data, info): # main function to call for the PILM process
     
     # create client with factory method
@@ -126,21 +131,55 @@ async def executeFunc(login_data, info): # main function to call for the PILM pr
      
 
      os.system('cls' if os.name == 'nt' else 'clear') # Clear everything above this code | To get rid of clutter
-    #  await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
-    #  await testScript(client)
-    #  await singleLayerPILMFunc(client)
-     await multiLayerPILMFun(client, currentLayer, PILM_Loop, platformIncrementUp, platfromDecrementDown)
      
 #------------------------------------------------------------------------------------#
+def check_List():
+ checkListApproved = False
+ userInput = ' '
+ 
+ print("\nChecklist Before PILM Process")
+ print("============================\n")
+    
+ print("P.I.L.M Configuration")
+ print("----------------------------------\n")
+ print("Info")
+ print("-----\n")
+ print(f"Job Name: {info['job_name']}")
+ print(f"Config Name: {info['config_name']}\n")
+    
+ print("Layer Configuration")
+ print("-------------------\n")
+ print(f"Start Layer: {start_layer}")
+ print(f"End Layer: {end_layer}")
+ print(f"Layer Thickness: {layerThickness}")
+ print(f"platformIncrementUp: {platformIncrementUp}")
+ print(f"platformDecrementDown: {platfromDecrementDown}\n")   
 
+ while checkListApproved != True:       
+  print("Are you okay with this? Y or N")
+  userInput = input()
+ 
+  if userInput == 'Y' or userInput == 'y':
+    #  print("Starting P.I.L.M Process")
+     checkListApproved == True
+     return True
+  elif userInput == 'N' or userInput == 'n':
+    print("Reconfigure Settings.")
+  else:
+      print("Wrong Input, try again. \n")
+      checkListApproved == False
+    
+    
+
+ 
 
 # Function for slot-die dispensing process 
 async def dispenseFunction(client):
-    # await client.execute(channel = 'manual_move', script = finalPos)
+    # await client.execute(channel = 'manual_move', script = slotDieEndPos)
     # await PILMDispenseOperation()
     await PILMDispenseOperation()
     asyncio.sleep(1)
-    await client.execute(channel = 'manual_move', script = finalPos)
+    await client.execute(channel = 'manual_move', script = slotDieEndPos)
     
 # -------------------------------------------------------------------------------------------------------------#
 
@@ -175,9 +214,9 @@ async def multiLayerPILMFun(client, currentLayer, PILM_Loop, platformIncrementUp
         await asyncio.sleep(1)
         
         # Slot Die Deposition Process
-        await client.execute(channel = 'manual_move', script = initalPos)
+        await client.execute(channel = 'manual_move', script = slotDieStartPos)
         await asyncio.sleep(2)
-        await client.execute(channel = 'manual_move', script = finalPos)
+        await client.execute(channel = 'manual_move', script = slotDieEndPos)
         # dispenseOperation()
         await asyncio.sleep(10) # wait for the slider to dispense the ink on the PCB 
         
@@ -205,69 +244,9 @@ async def multiLayerPILMFun(client, currentLayer, PILM_Loop, platformIncrementUp
     #-------------------------------------------#
     
     await client.stop_job() # Stop the function after the while loop is false and terminates
-    
-# async def multiLayerPILMFun(client, currentLayer, PILM_Loop, platformIncrementUp, platfromDecrementDown):
-#      await client.execute(channel = 'manual_move', script = defaultPlatformHeight) # REQUIRED for Absolute Movement
-#      PILM_Loop += 1 # Start on the first PILM Loop
-
-#      # Main Process # 
-#      print ("Starting Multi-Layer PILM Process ")    
-#      print(f"Inital Layer: {initalLayer}\n")
      
-#      # Loop for Layering Process
-#      while currentLayer <= end_layer:
-#          print(f"\nCurrent Layer: {currentLayer}")
-#          print(f"Loop: {PILM_Loop}\n")
-        
-#          if PILM_Loop > 1:
-#              platformIncrementUp += layerThickness
-#             #   platfromDecrementDown += layerThickness
-             
-#         # Deposition Process Preparation
-#          await asyncio.sleep(1)
-#          await client.execute(channel = 'manual_move', script = centerPos)
-#          await asyncio.sleep(1)
-         
-#          # Lower platform for slider 
-#          if PILM_Loop > 0:
-#               await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_DOWN2)
-              
-#         # Slot Die Deposition Process
-#          await client.execute(channel = 'manual_move', script = initalPos)
-#          await asyncio.sleep(2)
-#          await client.execute(channel = 'manual_move', script = finalPos)
-#         #  dispenseOperation()
-#         #  await dispenseFunction(client)
-#          await asyncio.sleep(10) # wait for the slider to dispense the ink on the substrate
-         
-#         # Substrate Drying Process
-#         #PSU function Goes Here
-#         #  await heatPadMutipleChannels(5,2,10,3)
-#          await client.execute(channel='manual_move', script=centerPos) # Move it back to starting position
-#          await asyncio.sleep(7)
-         
-#         # Start Sintering Process
-#          if currentLayer == start_layer:
-#            await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
-#          else:
-#             await client.resume_job() # resume the job, but at the next layer | inital is 7, then this will start at layer 8
-                
-#          await asyncio.sleep(10) # Varies. * Something to adjust, time it for how long the sintering process takes 
-#          await client.pause_job() # pause the job    
-#          currentLayer += 1 # Increase after sintering is done
-         
-#         # Preparing for next layer
-#          if PILM_Loop > 0:
-#              await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_UP2)
-
-            
-#          PILM_Loop += 1  
-             
-#      await client.stop_job() # Stop the function after the while loop is false and terminates
-
-    
 # -------------------------------------------------------------------------------------------------------------#
-#------------------------------------------------------------------------------------#
+
 # Single Layer PILM Process
 async def singleLayerPILMFunc(client):
      await client.execute(channel = 'manual_move', script = defaultPlatformHeight)
@@ -279,11 +258,11 @@ async def singleLayerPILMFunc(client):
      await asyncio.sleep(1)
      await client.execute(channel = 'manual_move', script = centerPos)
      await asyncio.sleep(2)
-     await client.execute(channel = 'manual_move', script = initalPos)
+     await client.execute(channel = 'manual_move', script = slotDieStartPos)
      
      # Slot Die Deposition Process
      await asyncio.sleep(1)
-     await client.execute(channel = 'manual_move', script = finalPos)
+     await client.execute(channel = 'manual_move', script = slotDieEndPos)
      await dispenseFunction(client)
     #  await asyncio.sleep(15) # wait for the slider to dispense the ink on the substrate
      
@@ -318,4 +297,13 @@ if __name__ == '__main__': # Required * Explain *
         'studio_version': 1
     }
     #CuO w/EG on PCB _various hatching
-    result = asyncio.run(executeFunc(login_data, info), debug = True) # required to control the machine * explain 
+    # result = asyncio.run(executeFunc(login_data, info), debug = True) # required to control the machine * explain 
+    check_List()
+     
+    if check_List == True:
+         # start program
+         print("Starting Program")
+    elif check_List == False:
+         print("Stopping Program.")
+     
+     
