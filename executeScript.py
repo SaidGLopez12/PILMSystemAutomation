@@ -35,7 +35,7 @@ centerPos = f'$m.move_abs($c[slider],{centerSlidePos},250)' # this will be used 
 # --- Platform Movement Variables And AconityScripts --- #
 
 # Platform variables for Multi-Layer PILM Process
-defaultHeight = "18.00" # default height of the platform from the start, adjust when needed
+defaultHeight = "0" # default height of the platform from the start, adjust when needed
 PILM_Loop = 0 # keep count of the total PILM iterations
 layerThickness = 0.05 # adjust platform for desired layer thickness for each iteration
 platformIncrementUp = -2.00 
@@ -143,29 +143,8 @@ async def dispenseFunction(client):
     await client.execute(channel = 'manual_move', script = finalPos)
     
 # -------------------------------------------------------------------------------------------------------------#
-def time_convert(sec):
-        mins = sec // 60
-        sec = sec & 60
-        hours = mins // 60
-        mins = mins & 60
-        print("Time Lapsed for Sintering = {0}:{1}:{2}\n".format(int(hours),int(mins),sec))
-        
-async def jobProcess(client, execution_script, start_layer, end_layer, build_parts, currentLayer):
-        if currentLayer == start_layer:
-           await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
-        else:
-            await client.resume_job() # resume the job, but at the next layer | inital is 7, then this will start at layer 8
-    
-async def sinterProcess(client):
-        loop = asyncio.get_event_loop()
-        start_time = time.time()
-        loop.run_until_complete(await jobProcess(client,execution_script, start_layer, end_layer, build_parts, currentLayer)) # calls the job process to either start or resume a job
-        end_time = time.time()
-        
-        time_lapsed = end_time - start_time
-        time_convert(time_lapsed)
 
-async def multiLayerPILMFun(client, currentLayer,PILM_Loop):
+async def multiLayerPILMFun(client, currentLayer, PILM_Loop, platformIncrementUp, platfromDecrementDown):
     # things to do before loop statement
     await client.execute(channel = 'manual_move', script = defaultPlatformHeight)
     PILM_Loop += 1 # Start on the first PILM Loop
@@ -178,18 +157,20 @@ async def multiLayerPILMFun(client, currentLayer,PILM_Loop):
     
     while currentLayer <= end_layer:
         print(f"\nCurrent Layer: {currentLayer}")
-        print(f"Loop: {PILM_Loop}\n")
+        print(f"Loop: {PILM_Loop}")
+        print(f"platformUp: {platformIncrementUp}\n")
         
-        if PILM_Loop > 2: # Loop 3 will decrease how much the platform will increase in height
-            platFormIncrementUp += layerThickness
-
+        if PILM_Loop == 2: # Loop 3 will decrease how much the platform will increase in height
+            platformIncrementUp = platformIncrementUp + layerThickness # negative Val + pos val
+            
         # Deposition Process Preparation
 
         if PILM_Loop == 1:
             await client.execute(channel = 'manual_move', script = centerPos)
         
-        if PILM_Loop > 2:
-             await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_UP2)
+        if PILM_Loop > 1:
+             await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_DOWN2)
+            #  await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_UP2)
              
         await asyncio.sleep(1)
         
@@ -207,14 +188,18 @@ async def multiLayerPILMFun(client, currentLayer,PILM_Loop):
         await asyncio.sleep(7)
         
         # Start Sintering Process
-        await sinterProcess(client)
-                
+        if currentLayer == start_layer:
+           await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
+        else:
+            await client.resume_job() # resume the job, but at the next layer | inital is 7, then this will start at layer 8
+
         await asyncio.sleep(10) # Varies. * Something to adjust, time it for how long the sintering process takes 
         await client.pause_job() # pause the job    
         currentLayer += 1 # Increase after sintering is done
         
-        if PILM_Loop > 2:
-              await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_DOWN2)
+        if PILM_Loop > 1:
+            #   await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_DOWN2)
+            await client.execute(channel = 'manual_move', script = slotDiePlatFormHeight_UP2)
 
         PILM_Loop += 1
     #-------------------------------------------#
