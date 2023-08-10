@@ -28,7 +28,7 @@ platformRearPos = "30"
 
 # Slot-die + Slider Positions
 start_postion = "105"
-end_position = "140"
+end_position = "145"
 
 # AconityScripts for SLIDER
 slotDieStartPos = f'$m.move_abs($c[slider], {start_postion},250)' # move slider to first pos of deposition process
@@ -39,7 +39,7 @@ centerPos_Slider = f'$m.move_abs($c[slider],{centerPos},250)' # this will be use
 # --- Platform Movement Variables And AconityScripts --- #
 
 # Platform variables for Multi-Layer PILM Process
-defaultHeight = "18.50" # default height of the platform from the start, adjust when needed
+defaultHeight = "18.70" # default height of the platform from the start, adjust when needed
 PILM_Loop = 0 # keep count of the total PILM iterations
 layerThickness = 0.20 # adjust platform for desired layer thickness for each iteration
 platformIncrementUp = -2.00 + layerThickness
@@ -104,8 +104,8 @@ sinterConfigs = {
 # Job Configurations | Select layers and sinter config here
 execution_script = sinterConfigs['single_Layer'] # Select the configuration for laser sintering here.
 build_parts = 'all' # Don't change. Will select all the existing parts within a job for the sintering process.
-start_layer = 1
-end_layer = 1  
+start_layer = 2
+end_layer = 2
 currentLayer = start_layer # Used to tell the current layer within the single and multi-layer process.
 initalLayer = start_layer # This is only ever used in the multi layer, but only once
 
@@ -130,8 +130,10 @@ async def executeFunc(login_data, info): # main function to call for the PILM pr
 
      os.system('cls' if os.name == 'nt' else 'clear') # Clear everything above this code | To get rid of clutter
      await check_List()
-    #  await singleLayerPILMFunc(client)
+    #  await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
+     await singleLayerPILMFunc(client)
     #  await multiLayerPILMFun(client, currentLayer, PILM_Loop, platformIncrementUp)
+
 #------------------------------------------------------------------------------------#
 async def check_List():   
  checkListApproved = False
@@ -226,7 +228,7 @@ async def multiLayerPILMFun(client, currentLayer, PILM_Loop, platformIncrementUp
         
         # Substrate Drying Process
         # PSU Functiton goes here
-        await heatPadMutipleChannels(8,2,300,2)
+        await heatPadMutipleChannels(9,3,600,2)
 
         # Start Sintering Process
         if currentLayer == start_layer:
@@ -268,9 +270,9 @@ async def singleLayerPILMFunc(client):
     # Substrate Drying Process
     #PSU function Goes Here
      await asyncio.sleep(3)
-     await heatPadMutipleChannels(8,3,300,2)
+     await heatPadMutipleChannels(9,3,600,2)
 
-    # Sintering Process
+    # # Sintering Process
      await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
      await asyncio.sleep(10) # Varies. * Something to adjust depending on how long each layer takes*   
      await client.stop_job()
@@ -287,6 +289,9 @@ if __name__ == '__main__': # Required * Explain *
         'email' : 'mshuai@stanford.edu',
         'password' : 'aconity'
     }
+
+    # http://192.168.2.201:9000
+    # //192.168.2.201:9000
    
     #change info to your needs
     info = {
