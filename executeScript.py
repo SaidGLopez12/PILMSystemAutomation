@@ -3,6 +3,7 @@ import asyncio # for AconityStudio Integration
 import os # to clear and clean console
 import sys # to exit out of program when needed
 import time # time delays
+import keyboard # for keyboard press
 import signal 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
@@ -271,7 +272,7 @@ async def singleLayerPILMFunc(client):
     # Substrate Drying Process
     #PSU function Goes Here
      await asyncio.sleep(3)
-     await heatPadMutipleChannels(9,3,600,2)
+     await heatPadMutipleChannels(9,3,5,2)
 
     # # Sintering Process
      await client.start_job(execution_script = execution_script,layers = [start_layer, end_layer],parts = build_parts) 
@@ -291,6 +292,7 @@ if __name__ == '__main__': # Required * Explain *
         'password' : 'aconity'
     }
 
+    # LinearizedPower_AlignedAxisToChamber
     # http://192.168.2.201:9000
     # //192.168.2.201:9000
    

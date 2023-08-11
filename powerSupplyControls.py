@@ -2,6 +2,7 @@
 import asyncio # for AconityStudio integration
 import pyvisa # frontend to the VISA library
 import time # for delays and timer function
+import keyboard # for keyboard press  
 #import os # for datalogging
 #---------------------#
 # Getting ID of PSU and preparing for configuration
@@ -177,6 +178,26 @@ def timerFunction(timeInSec):
         print("Time left:",timer, end="\r") # print the current timer value, create an end variable that creates a new line.
         time.sleep(1) 
         timeInSec -= 1 # reduce the total input time by 1 each repetition.
+
+def stopWatchFunction():
+    timeInSec = 0
+    space_pressed = False 
+
+    print("\nTimer is on. Hold space to stop PSU Channels")
+    keyboard.press_and_release('space') 
+    while space_pressed != True:   
+        
+        mins, secs = divmod(timeInSec, 60)
+        timer = '{:02d}:{:02d}'.format(mins, secs) # format the variable as 00.00
+        print("Time Active:",timer, end="\r") # print the current timer value, create an end variable that creates a new line.
+        time.sleep(1) 
+        timeInSec += 1
+        
+        if keyboard.is_pressed('space'):
+            space_pressed = True   
+                
+    print(f"\nTotal Time: {timeInSec}s")     
+             
 #----------------------------#
 
 #------AconityStudio Integration----------------------#
@@ -247,3 +268,51 @@ async def heatPadMutipleChannels(voltage,amps,timeInSec,numOfChannels): # numOfC
 
 # os.system('cls' if os.name == 'nt' else 'clear') # clears everything within the console.
 
+def MutipleChannels_StopWatch(voltage,amps,numOfChannels): # numOfChannels is a int val. 
+    rm = pyvisa.ResourceManager()
+    powerSupply = rm.open_resource('USB0::0x1AB1::0x0E11::DP8C243004769::INSTR')
+    
+    
+    if numOfChannels == 1:
+        powerSupply.write(':OUTP CH1, ON') 
+        print("Channel 1 is Active")
+        powerSupply.write(f':APPL CH1, {str(voltage)},{str(amps)}') 
+        print("Voltage: " + str(voltage) + "V")
+        print("Current: " + str(amps) + "A") 
+
+        stopWatchFunction()
+        powerSupply.write(':OUTP CH1, OFF')
+
+    elif numOfChannels == 2:
+        powerSupply.write(':OUTP CH1, ON')
+        powerSupply.write(':OUTP CH2, ON')
+        
+        print("Channel 1 and Channel 2 are Active")
+        powerSupply.write(f':APPL CH1, {str(voltage)},{str(amps)}')
+        powerSupply.write(f':APPL CH2, {str(voltage)},{str(amps)}')
+        print("Voltage: " + str(voltage) + "V")
+        print("Current: " + str(amps) + "A") 
+        
+        stopWatchFunction()
+        powerSupply.write(':OUTP CH1, OFF')
+        powerSupply.write(':OUTP CH2, OFF')     
+    elif numOfChannels == 3:
+        powerSupply.write(':OUTP CH1, ON')
+        powerSupply.write(':OUTP CH2, ON')
+        powerSupply.write(':OUTP CH3, ON')
+        
+        print("Channel 1, Channel 2, and Channel 3 are Active")
+        powerSupply.write(f':APPL CH1, {str(voltage)},{str(amps)}')
+        powerSupply.write(f':APPL CH2, {str(voltage)},{str(amps)}')
+        powerSupply.write(f':APPL CH3, {str(voltage)},{str(amps)}')
+        print("Voltage: " + str(voltage) + "V")
+        print("Current: " + str(amps) + "A") 
+        
+        stopWatchFunction()
+        powerSupply.write(':OUTP CH1, OFF')
+        powerSupply.write(':OUTP CH2, OFF')
+        powerSupply.write(':OUTP CH3, OFF')     
+    else:
+        print("Wrong Input,Try Again. 1|2|3")
+
+MutipleChannels_StopWatch(10,2,2)
