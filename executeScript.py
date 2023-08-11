@@ -153,6 +153,7 @@ async def check_List():
  print("-------------------\n")
  print(f"Start Layer: {start_layer}")
  print(f"End Layer: {end_layer}")
+ print(f"Starting Platform Height: {defaultHeight}")
  print(f"Layer Thickness: {layerThickness}")
  print(f"platformIncrementUp: {platformIncrementUp}")
  print(f"platformDecrementDown: {platfromDecrementDown}\n")   
