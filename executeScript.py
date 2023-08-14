@@ -228,6 +228,7 @@ async def multiLayerPILMFun(client, currentLayer, PILM_Loop, platformIncrementUp
         
         # Substrate Drying Process
         # PSU Functiton goes here
+        # await MutipleChannels_StopWatch
         await heatPadMutipleChannels(9,3,600,2)
 
         # Start Sintering Process
@@ -270,6 +271,7 @@ async def singleLayerPILMFunc(client):
     # Substrate Drying Process
     #PSU function Goes Here
      await asyncio.sleep(3)
+      # await MutipleChannels_StopWatch
      await heatPadMutipleChannels(9,3,5,2)
 
     # # Sintering Process
