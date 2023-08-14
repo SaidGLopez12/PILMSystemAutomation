@@ -262,13 +262,9 @@ async def heatPadMutipleChannels(voltage,amps,timeInSec,numOfChannels): # numOfC
         powerSupply.write(':OUTP CH3, OFF')     
     else:
         print("Wrong Input,Try Again. 1|2|3") # won't really be needed. Just in case.
-    
-#---------------------------------#
-# Test Functions Here # 
 
-# os.system('cls' if os.name == 'nt' else 'clear') # clears everything within the console.
-
-def MutipleChannels_StopWatch(voltage,amps,numOfChannels): # numOfChannels is a int val. 
+# Main function with multiple channels. | Will require user input to stop channel outputs.
+async def MutipleChannels_StopWatch(voltage,amps,numOfChannels): # numOfChannels is a int val. 
     rm = pyvisa.ResourceManager()
     powerSupply = rm.open_resource('USB0::0x1AB1::0x0E11::DP8C243004769::INSTR')
     
@@ -314,5 +310,7 @@ def MutipleChannels_StopWatch(voltage,amps,numOfChannels): # numOfChannels is a 
         powerSupply.write(':OUTP CH3, OFF')     
     else:
         print("Wrong Input,Try Again. 1|2|3")
+#---------------------------------#
+# Test Functions Here # 
 
-MutipleChannels_StopWatch(10,2,2)
+# os.system('cls' if os.name == 'nt' else 'clear') # clears everything within the console.

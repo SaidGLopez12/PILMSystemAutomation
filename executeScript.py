@@ -3,7 +3,7 @@ import asyncio # for AconityStudio Integration
 import os # to clear and clean console
 import sys # to exit out of program when needed
 import time # time delays
-import keyboard # for keyboard press
+import keyboard # for keyboard inputs | For PSU with Stopwatch
 import signal 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
@@ -12,8 +12,8 @@ from AconitySTUDIO_client import AconitySTUDIOPythonClient
 from AconitySTUDIO_client import utils
 
 # import PSU control functions and Syringe Dispense control functions
-from powerSupplyControls import timerFunction, heatPadOneChannel, heatPadMutipleChannels
-from syringeDispenseControls import PILMDispenseOperation, dispenseOperation
+from powerSupplyControls import timerFunction, MutipleChannels_StopWatch, heatPadOneChannel, heatPadMutipleChannels
+from syringeDispenseControls import PILMDispenseOperation
 #------------------------------------------------------------------------------------#
 
 
@@ -177,6 +177,7 @@ async def check_List():
     
 
  
+# -------------------------------------------------------------------------------------------------------------#
 
 # Function for slot-die dispensing process 
 async def dispenseFunction(client):
@@ -184,9 +185,6 @@ async def dispenseFunction(client):
     await PILMDispenseOperation()
     
     
-    
-# -------------------------------------------------------------------------------------------------------------#
-
 async def multiLayerPILMFun(client, currentLayer, PILM_Loop, platformIncrementUp):
     # things to do before loop statement
     await client.execute(channel = 'manual_move', script = defaultPlatformHeight)
