@@ -17,3 +17,5 @@ pump.pumping_volume = 1.0
 pump.pumping_rate = 20.0
 
 pump.run(False)
+
+print("Hello World")
